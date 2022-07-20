@@ -13,6 +13,8 @@ class EnsembleLinear(nn.Module):
     weight_decay: float
     weight: torch.Tensor
     device: torch.device
+    inject_noise: bool
+    noise_dim: int
 
     def __init__(self, 
             in_features: int,
@@ -26,10 +28,10 @@ class EnsembleLinear(nn.Module):
         self.out_features = out_features
         self.ensemble_size = ensemble_size
         self.device = device
-        self.weight = nn.Parameter(torch.Tensor(ensemble_size, in_features, out_features)).to(device)
+        self.weight = nn.Parameter(torch.Tensor(self.ensemble_size, self.in_features, self.out_features)).to(device)
         self.weight_decay = weight_decay
         if bias:
-            self.bias = nn.Parameter(torch.Tensor(ensemble_size, out_features)).to(device)
+            self.bias = nn.Parameter(torch.Tensor(self.ensemble_size, self.out_features)).to(device)
         else:
             self.register_parameter('bias', None)
         self.reset_parameters()

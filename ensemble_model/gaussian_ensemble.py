@@ -10,7 +10,10 @@ from numpy.typing import NDArray
 class GaussianEnsemble(object):
     elite_models_idxs: List[int]
 
-    def __init__(self, ensemble_model: GaussianEnsembleNetwork, lr: float = 1e-3, elite_proportion: float = 0.2):
+    def __init__(self,
+            ensemble_model: GaussianEnsembleNetwork,
+            lr: float = 1e-3,
+            elite_proportion: float = 0.2):
         assert elite_proportion > 0. and elite_proportion <= 1.
         self.model_list = []
         self.ensemble_model = ensemble_model
@@ -32,60 +35,80 @@ class GaussianEnsemble(object):
         """
         assert len(mean.shape) == len(logvar.shape) == len(targets.shape) == 3
         inv_var = torch.exp(-logvar)
-        # Average over batch and dim, sum over ensembles.
-        mse_loss = ((mean - targets).square() * inv_var).mean(-1).mean(-1).sum() 
-        var_loss = logvar.mean(-1).mean(-1).sum()
+        # Average over batch and dim
+        mse_loss = ((mean - targets).square() * inv_var).mean(-1).mean(-1) 
+        var_loss = logvar.mean(-1).mean(-1)
         return mse_loss, var_loss
 
-    def _training_step(self, data: torch.Tensor, target: torch.Tensor, use_decay: False) -> float:
+    def _training_step(self, data: torch.Tensor, target: torch.Tensor, use_decay: bool, variance_regularizer_factor: float) -> float:
         mean, logvar = self.ensemble_model(data)
         mse_loss, var_loss = self._ll_loss(mean, logvar, target)
-        loss = mse_loss + var_loss
+        
+        # Sum over ensembles
+        mse_loss = mse_loss.sum()
+        var_loss = var_loss.sum()
+        loss = (mse_loss + var_loss)
         self.optimizer.zero_grad()
-        loss += 1e-2 * self.ensemble_model.get_variance_regularizer()
+        loss += variance_regularizer_factor * self.ensemble_model.get_variance_regularizer()
         if use_decay:
             loss += self.ensemble_model.get_decay_loss()
         loss.backward()
         self.optimizer.step()
-        return loss.item()
+        return mse_loss.item(), var_loss.item()
 
-    def _training_loop(self, data: NDArray[np.float64], target: NDArray[np.float64], batch_size: int) -> List[float]:
+    def _training_loop(self,
+            data: NDArray[np.float64],
+            target: NDArray[np.float64],
+            batch_size: int,
+            use_decay: bool,
+            variance_regularizer_factor: float) -> List[float]:
         train_idx = np.vstack([np.random.permutation(data.shape[0]) for _ in range(self.network_size)])
         losses = []
         for start_pos in range(0, data.shape[0], batch_size):
             idx = train_idx[:, start_pos: start_pos + batch_size]
             train_input = torch.from_numpy(data[idx]).float()
             train_label = torch.from_numpy(target[idx]).float()
-            mean, logvar = self.ensemble_model(train_input)
-            loss = self._training_step(mean, logvar, train_label)
-            losses.append(loss)
+            mse_loss, var_loss = self._training_step(train_input, train_label, use_decay, variance_regularizer_factor)
+            losses.append(mse_loss + var_loss)
         return losses
 
     def _test_loop(self,
             epoch: int,
             test_data: torch.Tensor,
             test_target: torch.Tensor,
-            snapshots: Dict[int, Tuple[int, float]]) -> Tuple[bool, Dict[int, Tuple[int, float]]]:
+            snapshots: Dict[int, Tuple[int, float]]) -> Tuple[float, bool, Dict[int, Tuple[int, float]]]:
 
         with torch.no_grad():
             holdout_mean, holdout_logvar = self.ensemble_model(test_data)
-            holdout_mse_losses, _ = self._ll_loss(holdout_mean, holdout_logvar, test_target)
+            holdout_mse_losses, holdout_var_losses = self._ll_loss(holdout_mean, holdout_logvar, test_target)
             holdout_mse_losses = holdout_mse_losses.detach().cpu().numpy()
+            holdout_var_losses = holdout_var_losses.detach().cpu().numpy()
             sorted_loss_idx = np.argsort(holdout_mse_losses)
             elite_size = int(len(sorted_loss_idx) * self.elite_proportion)
             self.elite_models_idxs = sorted_loss_idx[:elite_size].tolist()
         
-        return save_best_result(epoch, snapshots, holdout_mse_losses)
+        return [np.sum(holdout_mse_losses + holdout_var_losses), *save_best_result(epoch, snapshots, holdout_mse_losses)]
 
     def train(self,
-            data: NDArray[np.float64],
-            target: NDArray[np.float64],
+            state: NDArray,
+            action: NDArray,
+            reward: NDArray,
+            next_state: NDArray,
             batch_size: int,
-            holdout_ratio: int = 0.8,
+            holdout_ratio: int = 0.2,
             max_epochs: int = 1000,
-            max_epochs_since_update: int = 5):
+            max_epochs_since_update: int = 5,
+            use_decay: bool = False,
+            variance_regularizer_factor: float = 5e-3) -> Tuple[List[float], List[float]]:
+        assert holdout_ratio > 0 and holdout_ratio < 1.
+        assert len(state) == len(action) == len(reward) == len(next_state)
+
+        delta_state = next_state - state
+        data = np.concatenate((state, action[:, None]), axis=-1)
+        target = np.concatenate((delta_state, reward[:, None]), axis=-1)
+
         epochs_since_update = 0
-        num_training = int(data.shape[0] * holdout_ratio)
+        num_training = int(data.shape[0] * (1-holdout_ratio))
         snapshots = {i: (None, np.infty) for i in range(self.network_size)}
 
         # Shuffle
@@ -105,20 +128,22 @@ class GaussianEnsemble(object):
         test_data = test_data[None, :, :].repeat([self.network_size, 1, 1])
         test_target = test_target[None, :, :].repeat([self.network_size, 1, 1])
 
-        losses = []
+        training_losses = []
+        test_losses = []
 
         epoch = 0
         while epoch < max_epochs:
-            _losses = self._training_loop(training_data, training_target, batch_size)
-            losses.append(np.mean(_losses))
-            updated, snapshots = self._test_loop(epoch, test_data, test_target, snapshots)
+            _training_losses = self._training_loop(training_data, training_target, batch_size, use_decay, variance_regularizer_factor)
+            training_losses.append(np.mean(_training_losses))
+            _test_loss, updated, snapshots = self._test_loop(epoch, test_data, test_target, snapshots)
+            test_losses.append(_test_loss)
 
             epochs_since_update = 0 if updated else epochs_since_update + 1
             if epochs_since_update > max_epochs_since_update:
                 break
             epoch += 1
 
-        return losses
+        return training_losses, test_losses
 
 
 if __name__ == "__main__":

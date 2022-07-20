@@ -11,22 +11,24 @@ from learnable_environment import LearnableEnvironment, StateType, ActionType
 
 
 class CartPoleLearnableEnvironment(LearnableEnvironment):
+    # Angle at which to fail the episode
+    theta_threshold_radians = 12 * 2 * math.pi / 360
+    x_threshold = 2.4
+
+    # Angle limit set to 2 * theta_threshold_radians so failing observation
+    # is still within bounds.
+    high = np.array([x_threshold * 2,
+                    np.finfo(np.float32).max,
+                    theta_threshold_radians * 2,
+                    np.finfo(np.float32).max],
+                    dtype=np.float32)
+
+    action_space = spaces.Discrete(2)
+    observation_space = spaces.Box(-high, high, dtype=np.float32)
+
+
     def __init__(self, *args, **kwargs):
         super(CartPoleLearnableEnvironment, self).__init__(*args, **kwargs)
-        # Angle at which to fail the episode
-        self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 2.4
-
-        # Angle limit set to 2 * theta_threshold_radians so failing observation
-        # is still within bounds.
-        high = np.array([self.x_threshold * 2,
-                         np.finfo(np.float32).max,
-                         self.theta_threshold_radians * 2,
-                         np.finfo(np.float32).max],
-                        dtype=np.float32)
-
-        self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.Box(-high, high, dtype=np.float32)
         self.steps_beyond_done = None
 
     def _termination_fn(self, state: StateType, action: ActionType, next_state: StateType) -> bool:
@@ -43,6 +45,9 @@ class CartPoleLearnableEnvironment(LearnableEnvironment):
         )
 
     def _reward_fn(self, state: StateType, action: ActionType, next_state: StateType, done: bool) -> float:
+        if self.custom_reward_fn:
+            return self.custom_reward_fn(state, action, next_state, done)
+
         if not done:
             reward = 1.0
         elif self.steps_beyond_done is None:
