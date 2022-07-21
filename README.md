@@ -1,6 +1,14 @@
 # Learnable Environments for Model-Based Reinforcement Learning
 
 The goal of this repository is to provide a gym-compatible library to easily perform model-based Reinforcement Learning experiments using PyTorch.
+The library makes it easier to create learnable environments and ensembles of networks that can be used to learn the dynamics of an environment.
+
+Specifically, the library provides the following:
+
+- Provide a gym-like interface for environments that use a neural network to model the transition/reward function
+- Provide implementations of neural networks used to model the transition/reward function (leveraging ensembles of networks)
+
+See also the example in `example/test.py` to see an example of ensemble network trained on the `CartPole` environment.
 
 Author: Alessio Russo, alessior@kth.se
 
