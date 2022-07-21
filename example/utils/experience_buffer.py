@@ -1,5 +1,5 @@
 # Load packages
-from typing import Tuple, Union
+from typing import Tuple
 import numpy as np
 from collections import deque, namedtuple
 import random
@@ -9,6 +9,7 @@ from numpy.typing import NDArray
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'next_state', 'done'])
 
 class ExperienceBuffer(object):
+    """ Experience replay buffer object """
     capacity: int
     buffer: deque
 

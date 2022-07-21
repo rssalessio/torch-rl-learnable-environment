@@ -7,7 +7,7 @@ permalink: https://perma.cc/C9ZM-652R
 import math
 from gym import spaces, logger
 import numpy as np
-from learnable_environment import LearnableEnvironment, StateType, ActionType
+from learnable_environment.learnable_environment import LearnableEnvironment, StateType, ActionType
 
 
 class CartPoleLearnableEnvironment(LearnableEnvironment):
@@ -75,7 +75,7 @@ class CartPoleLearnableEnvironment(LearnableEnvironment):
         pass
 
 if __name__ == "__main__":
-    from ensemble_model.gaussian_ensemble import GaussianEnsemble
+    from learnable_environment.ensemble_model.gaussian_ensemble_model import GaussianEnsembleModel
     from ensemble_model.ensemble_utils import LayerInfo
     from ensemble_model.gaussian_ensemble_network import GaussianEnsembleNetwork
     n_models = 5
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         LayerInfo(input_size = 40, output_size = 40, weight_decay = 1e-3),
         LayerInfo(input_size = 40, output_size = state_dim + reward_dim, weight_decay = 5e-4)]
     network = GaussianEnsembleNetwork(n_models, layers)
-    model = GaussianEnsemble(network)
+    model = GaussianEnsembleModel(network)
     model.scaler.fit([[1, 1, 1, 1, 1], [3, 2, 2, 1.5, 0]])
 
     env = CartPoleLearnableEnvironment(model = model)

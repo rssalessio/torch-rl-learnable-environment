@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, validator
 from typing import List, Optional, Tuple, Dict
-from .ensemble_linear_layer import EnsembleLinear
+from learnable_environment.ensemble_model.ensemble_linear_layer import EnsembleLinear
 
 class LayerInfo(BaseModel):
     input_size: int

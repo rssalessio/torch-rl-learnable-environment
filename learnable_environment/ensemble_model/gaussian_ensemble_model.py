@@ -3,25 +3,20 @@ from typing import Dict, List, Tuple
 import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
-from .gaussian_ensemble_network import GaussianEnsembleNetwork
-from .ensemble_utils import save_best_result
+from learnable_environment.ensemble_model.ensemble_model import EnsembleModel
+from learnable_environment.ensemble_model.gaussian_ensemble_network import GaussianEnsembleNetwork
+from learnable_environment.ensemble_model.ensemble_utils import save_best_result
 from numpy.typing import NDArray
 
-class GaussianEnsemble(object):
-    elite_models_idxs: List[int]
-
+class GaussianEnsembleModel(EnsembleModel):
+    """ Represents an ensemble model that outputs mean and variance of a Gaussian distribution """
     def __init__(self,
             ensemble_model: GaussianEnsembleNetwork,
             lr: float = 1e-3,
             elite_proportion: float = 0.2):
-        assert elite_proportion > 0. and elite_proportion <= 1.
-        self.model_list = []
-        self.ensemble_model = ensemble_model
+        super(GaussianEnsembleModel, self).__init__(ensemble_model, elite_proportion)
         self.optimizer = torch.optim.Adam(self.ensemble_model.parameters(), lr=lr)
         self.scaler = StandardScaler()
-        self.network_size = ensemble_model.ensemble_size
-        self.elite_proportion = elite_proportion
-        self.elite_models_idxs = [i for i in range(self.network_size)]
 
     def predict(self, input: NDArray[np.float64]) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
         input = torch.from_numpy(self.scaler.transform(input)).float()
@@ -154,7 +149,7 @@ if __name__ == "__main__":
         LayerInfo(input_size = 2, output_size = 4, weight_decay = 0.1), 
         LayerInfo(input_size = 4, output_size = 2, weight_decay = 0.05)]
     network = GaussianEnsembleNetwork(n_models, layers)
-    ensemble = GaussianEnsemble(network)
+    ensemble = GaussianEnsembleModel(network)
     ensemble.scaler.fit([[1, 1], [3, 2]])
 
     x = np.array([[1, 0]])

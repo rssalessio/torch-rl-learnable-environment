@@ -3,7 +3,8 @@ import numpy as np
 from numpy.typing import NDArray
 from typing import Callable, Dict, Optional, Tuple, Union
 from gym.utils import seeding
-from ensemble_model.gaussian_ensemble import GaussianEnsemble
+from learnable_environment.ensemble_model import GaussianEnsembleModel
+from learnable_environment.ensemble_model import EnsembleModel
 from abc import ABC, abstractmethod
 
 
@@ -26,7 +27,7 @@ class LearnableEnvironment(gym.Env, ABC):
     observation_space: gym.Space
 
     def __init__(self,
-            model: GaussianEnsemble,
+            model: EnsembleModel,
             use_learnt_reward_fn: bool = False,
             custom_reward_fn: Optional[Callable[[StateType, ActionType, StateType, bool], float]] = None,
             seed: Optional[int]  = None):
@@ -59,7 +60,7 @@ class LearnableEnvironment(gym.Env, ABC):
 
         inputs = np.array([np.concatenate((state, [action]), axis=-1)])
         info = {}
-        if isinstance(self.model, GaussianEnsemble):
+        if isinstance(self.model, GaussianEnsembleModel):
             ensemble_means, ensemble_vars = self.model.predict(inputs)
             ensemble_stds = np.sqrt(ensemble_vars)
             ensemble_means[:, :, :-1] += state

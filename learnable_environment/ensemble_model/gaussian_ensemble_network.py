@@ -3,15 +3,14 @@ from typing import List, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .ensemble_linear_layer import EnsembleLinear
-from .ensemble_utils import LayerInfo, create_ensemble_network_body
+from learnable_environment.ensemble_model.ensemble_linear_layer import EnsembleLinear
+from learnable_environment.ensemble_model.ensemble_network import EnsembleNetwork
+from learnable_environment.ensemble_model.ensemble_utils import LayerInfo, create_ensemble_network_body
 
-class GaussianEnsembleNetwork(nn.Module):
+class GaussianEnsembleNetwork(EnsembleNetwork):
     """ Ensemble network that consists of fully connected layers. Outputs mean and variance """
-    ensemble_size: int
     max_logvar: torch.Tensor
     min_logvar: torch.Tensor
-    device: torch.device
 
     def __init__(self,
             ensemble_size: int,
@@ -19,12 +18,8 @@ class GaussianEnsembleNetwork(nn.Module):
             max_logvar: float = 0.5,
             min_logvar: float = -10,
             device: torch.device = torch.device('cpu')):
-        super(GaussianEnsembleNetwork, self).__init__()
-        assert max_logvar > min_logvar
+        super(GaussianEnsembleNetwork, self).__init__(ensemble_size, device)
         assert ensemble_size > 0
-
-        self.ensemble_size = ensemble_size
-        self.device = device
         self.model = create_ensemble_network_body(ensemble_size, layers[:-1]).to(self.device)
 
         # Add last layer (and add variance output)
@@ -50,7 +45,7 @@ class GaussianEnsembleNetwork(nn.Module):
         return mean, logvar
 
     def get_decay_loss(self, exponent: float = 2) -> float:
-        return reduce(lambda x, y: x + y.get_decay_loss(exponent) if isinstance(y, EnsembleLinear) else 0, self.children())
+        return reduce(lambda x, y: x + y.get_decay_loss(exponent) if isinstance(y, EnsembleLinear) else 0, self.children(), 0)
 
     def get_variance_regularizer(self) -> float:
         return (self.max_logvar - self.min_logvar).sum()
