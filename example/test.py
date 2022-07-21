@@ -2,7 +2,7 @@ import numpy as np
 import gym
 import matplotlib.pyplot as plt
 from typing import List
-from learnable_environment import CartPoleLearnableEnvironment
+from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment
 from learnable_environment.ensemble_model import GaussianEnsembleModel, LayerInfo, GaussianEnsembleNetwork
 from utils.experience_buffer import Experience, ExperienceBuffer
 
@@ -55,7 +55,7 @@ for i in range(5000):
     state = next_state if not done else env.reset()
 
 # Test prediction with different time horizons
-envEnsemble = CartPoleLearnableEnvironment(model)
+envEnsemble = CartPoleLearnableEnvironment(model=model)
 max_horizon = 15
 for step_length in range(1, max_horizon):
     prediction_stats[step_length] = []
