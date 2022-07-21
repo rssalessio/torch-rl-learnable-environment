@@ -47,5 +47,5 @@ class GaussianEnsembleNetwork(EnsembleNetwork):
     def get_decay_loss(self, exponent: float = 2) -> float:
         return reduce(lambda x, y: x + y.get_decay_loss(exponent) if isinstance(y, EnsembleLinear) else 0, self.children(), 0)
 
-    def get_variance_regularizer(self) -> float:
+    def get_variance_regularizer(self) -> torch.Tensor:
         return (self.max_logvar - self.min_logvar).sum()
