@@ -1,6 +1,6 @@
 # Learnable Environments for Model-Based Reinforcement Learning
 
-The goal of this repository is to provide a gym-compatible library to easily perform model-based Reinforcement Learning experiments.
+The goal of this repository is to provide a gym-compatible library to easily perform model-based Reinforcement Learning experiments using PyTorch.
 
 Author: Alessio Russo, alessior@kth.se
 
@@ -44,6 +44,10 @@ while not done:
     state =  next_state
 
 ```
+
+## Example - Prediction error
+
+In the following plot we see the performance of an ensemble of 5 networks used to learn the dynamics of the CartPole environment (CartPole-v0 in OpenGym). The network has been trained with 1000 samples, batch size of 64 elements and a learning rate of 0.001. The network has 1 hidden layer with `in_features=120` and `out_features=40`.
 
 ![Prediction error at different horizon lengths - Cartpole Environment](./example.png)
 
