@@ -69,7 +69,7 @@ Any new environment needs to implement 3 functions:
 
 Check the example in `learnable_environment/cartpole.py` for more details.
 
-## How to add new ensembles
+## How to add new ensembles or transition function models
 
 To add a new type of model to represent the transition function/reward function, you need to create an `EnsembleModel` that implements the `predict(inputs)` function, where `inputs` is a numpy array that concatenates `(state, action)`. The function must return the next state, and possibly, the predicted reward. Check an example of implementation in `learnable_environment/ensemble_model/gaussian_ensemble_model.py`.
 
