@@ -65,7 +65,7 @@ Any new environment needs to implement 3 functions:
 
 - `_termination_fn(state, action, next_state)`: termination function. Evaluates if the MDP has reached a terminal state
 - `_reset_fn()`: reset function (returns the initial state)
-- `reward_fn(state, action, next_state, done)`: reward function (in case you don't want to use the one learnt by the ensemble)
+- `_reward_fn(state, action, next_state, done)`: reward function (in case you don't want to use the one learnt by the ensemble)
 
 Check the example in `learnable_environment/cartpole.py` for more details.
 
