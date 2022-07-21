@@ -57,7 +57,7 @@ while not done:
 
 In the following plot we see the performance of an ensemble of 5 networks used to learn the dynamics of the CartPole environment (CartPole-v0 in OpenGym). The network has been trained with 1000 samples, batch size of 64 elements and a learning rate of 0.01. The network has 1 hidden layer with `in_features=80` and `out_features=40`.
 
-![Prediction error at different horizon lengths][(example-cartpole.png "Cartpole") ![alt-text-2](example-mountaincar.png "MountainCar")
+![Prediction error at different horizon lengths](example-cartpole.png "Cartpole") ![alt-text-2](example-mountaincar.png "MountainCar")
 
 ## How to add new environments
 
