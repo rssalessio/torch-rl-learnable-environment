@@ -31,8 +31,8 @@ class GaussianEnsembleNetwork(EnsembleNetwork):
             layers[-1].weight_decay, layers[-1].bias, layers[-1].device).to(self.device)
 
         # Initialize max logvar and min logvar
-        self.max_logvar = nn.Parameter(torch.ones((1, layers[-1].output_size)).float() * max_logvar, requires_grad=False).to(self.device)
-        self.min_logvar = nn.Parameter(torch.ones((1, layers[-1].output_size)).float() * min_logvar, requires_grad=False).to(self.device)
+        self.max_logvar = nn.Parameter(torch.ones((1, layers[-1].output_size)).float() * max_logvar, requires_grad=True).to(self.device)
+        self.min_logvar = nn.Parameter(torch.ones((1, layers[-1].output_size)).float() * min_logvar, requires_grad=True).to(self.device)
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         output = self.model(x)

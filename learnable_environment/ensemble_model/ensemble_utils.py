@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel, validator
-from typing import List, Optional, Tuple, Dict
+from typing import Callable, List, Optional, Tuple, Dict
 from learnable_environment.ensemble_model.ensemble_linear_layer import EnsembleLinear
 
 class LayerInfo(BaseModel):
@@ -11,7 +11,7 @@ class LayerInfo(BaseModel):
     output_size: int
     weight_decay: float = 0.
     bias: bool = True
-    activation_function: Optional[nn.Module] = nn.ReLU()
+    activation_function: Optional[Callable[[],nn.Module]] = lambda: nn.SiLU()
     device: torch.device = torch.device('cpu')
 
     class Config:
@@ -23,7 +23,7 @@ def create_ensemble_network_body(ensemble_size: int, layers: List[LayerInfo]) ->
     for idx, layer in enumerate(layers):
         _layers.append(EnsembleLinear(layer.input_size, layer.output_size, ensemble_size,  layer.weight_decay, layer.bias, layer.device))
         if layer.activation_function:
-            _layers.append(layer.activation_function)
+            _layers.append(layer.activation_function())
 
     return nn.Sequential(*_layers)
 

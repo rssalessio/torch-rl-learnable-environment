@@ -35,7 +35,12 @@ class GaussianEnsembleModel(EnsembleModel):
         var_loss = logvar.mean(-1).mean(-1)
         return mse_loss, var_loss
 
-    def _training_step(self, data: torch.Tensor, target: torch.Tensor, use_decay: bool, variance_regularizer_factor: float) -> float:
+    def _training_step(self, 
+            data: torch.Tensor,
+            target: torch.Tensor,
+            use_decay: bool,
+            variance_regularizer_factor: float = 1e-2,
+            decay_regularizer_factor: float = 1e-3) -> float:
         mean, logvar = self.ensemble_model(data)
         mse_loss, var_loss = self._ll_loss(mean, logvar, target)
         
@@ -46,7 +51,7 @@ class GaussianEnsembleModel(EnsembleModel):
         self.optimizer.zero_grad()
         loss += variance_regularizer_factor * self.ensemble_model.get_variance_regularizer()
         if use_decay:
-            loss += self.ensemble_model.get_decay_loss()
+           loss += decay_regularizer_factor * self.ensemble_model.get_decay_loss()
         loss.backward()
         self.optimizer.step()
         return mse_loss.item(), var_loss.item()
@@ -56,15 +61,16 @@ class GaussianEnsembleModel(EnsembleModel):
             target: NDArray[np.float64],
             batch_size: int,
             use_decay: bool,
-            variance_regularizer_factor: float) -> List[float]:
+            variance_regularizer_factor: float = 1e-2,
+            decay_regularizer_factor: float = 1e-3) -> List[float]:
         train_idx = np.vstack([np.random.permutation(data.shape[0]) for _ in range(self.network_size)])
         losses = []
         for start_pos in range(0, data.shape[0], batch_size):
             idx = train_idx[:, start_pos: start_pos + batch_size]
             train_input = torch.from_numpy(data[idx]).float()
             train_label = torch.from_numpy(target[idx]).float()
-            mse_loss, var_loss = self._training_step(train_input, train_label, use_decay, variance_regularizer_factor)
-            losses.append(mse_loss + var_loss)
+            mse_loss, var_loss = self._training_step(train_input, train_label, use_decay, variance_regularizer_factor, decay_regularizer_factor)
+            losses.append(mse_loss)
         return losses
 
     def _test_loop(self,
@@ -82,7 +88,7 @@ class GaussianEnsembleModel(EnsembleModel):
             elite_size = int(len(sorted_loss_idx) * self.elite_proportion)
             self.elite_models_idxs = sorted_loss_idx[:elite_size].tolist()
         
-        return [np.sum(holdout_mse_losses + holdout_var_losses), *save_best_result(epoch, snapshots, holdout_mse_losses)]
+        return [np.sum(holdout_mse_losses), *save_best_result(epoch, snapshots, holdout_mse_losses)]
 
     def train(self,
             state: NDArray,
@@ -94,7 +100,8 @@ class GaussianEnsembleModel(EnsembleModel):
             max_epochs: int = 1000,
             max_epochs_since_update: int = 5,
             use_decay: bool = False,
-            variance_regularizer_factor: float = 5e-3) -> Tuple[List[float], List[float]]:
+            variance_regularizer_factor: float = 1e-2,
+            decay_regularizer_factor: float = 1e-3) -> Tuple[List[float], List[float]]:
         assert holdout_ratio > 0 and holdout_ratio < 1.
         assert len(state) == len(action) == len(reward) == len(next_state)
 
@@ -128,7 +135,7 @@ class GaussianEnsembleModel(EnsembleModel):
 
         epoch = 0
         while epoch < max_epochs:
-            _training_losses = self._training_loop(training_data, training_target, batch_size, use_decay, variance_regularizer_factor)
+            _training_losses = self._training_loop(training_data, training_target, batch_size, use_decay, variance_regularizer_factor, decay_regularizer_factor)
             training_losses.append(np.mean(_training_losses))
             _test_loss, updated, snapshots = self._test_loop(epoch, test_data, test_target, snapshots)
             test_losses.append(_test_loss)

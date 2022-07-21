@@ -5,6 +5,7 @@ from typing import List
 from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment
 from learnable_environment.ensemble_model import GaussianEnsembleModel, LayerInfo, GaussianEnsembleNetwork
 from utils.experience_buffer import Experience, ExperienceBuffer
+import torch.nn as nn
 
 # Parameters
 num_samples = 1000
@@ -19,9 +20,9 @@ buffer = ExperienceBuffer(num_samples)
 
 # Network definition
 layers = [
-    LayerInfo(input_size = state_dim + action_dim, output_size = 120, weight_decay = 1e-3), 
-    LayerInfo(input_size = 120, output_size = 40, weight_decay = 1e-3),
-    LayerInfo(input_size = 40, output_size = state_dim + reward_dim, weight_decay = 5e-4)]
+    LayerInfo(input_size = state_dim + action_dim, output_size = 80), 
+    LayerInfo(input_size = 80, output_size = 40),
+    LayerInfo(input_size = 40, output_size = state_dim + reward_dim)]
 network = GaussianEnsembleNetwork(n_models, layers)
 
 # Use ensemble network to create a model
@@ -56,7 +57,7 @@ for i in range(5000):
 
 # Test prediction with different time horizons
 envEnsemble = CartPoleLearnableEnvironment(model=model)
-max_horizon = 15
+max_horizon = 5
 for step_length in range(1, max_horizon):
     prediction_stats[step_length] = []
     for idx, experience in enumerate(samples):
@@ -65,7 +66,7 @@ for step_length in range(1, max_horizon):
         error = []
         for t in range(step_length):
             if (idx + t) >= len(samples): break
-            next_state, reward, done, info = envEnsemble._step(state, action)
+            next_state, reward, done, info = envEnsemble._step(state, samples[idx + t].action)
             error.append(np.linalg.norm(samples[idx + t].next_state - next_state, 2))
             state = next_state
             if done: break
@@ -78,7 +79,7 @@ y_cf = 1.96*np.array([np.std(prediction_stats[idx])/np.sqrt(len(prediction_stats
 plt.plot(x_data, y_mean)
 plt.fill_between(x_data, (y_mean - y_cf), (y_mean + y_cf), color='b', alpha=.1)
 plt.xlabel('Prediction horizon')
-plt.title('Average $\ell_2$ error')
+plt.title('CartPole - Average $\ell_2$ error')
 plt.grid()
 plt.show()
 
