@@ -12,6 +12,10 @@ See also the example in `example/test.py` to see an example of ensemble network 
 
 Author: Alessio Russo, alessior@kth.se
 
+## How to use it
+
+Clone the library and install it using `pip install`. Check the example in `example/test.py`, or the example down below.
+
 ## Example
 
 In the following example we create an ensemble of 5 networks to emulate the CartPole environment in OpenGym. Refer to the file in example/test.py for more details.
@@ -55,7 +59,7 @@ while not done:
 
 ## Example - Prediction error
 
-In the following plot we see the performance of an ensemble of 5 networks used to learn the dynamics of the CartPole environment (CartPole-v0 in OpenGym). The network has been trained with 1000 samples, batch size of 64 elements and a learning rate of 0.01. The network has 1 hidden layer with `in_features=80` and `out_features=40`.
+In the following plots we see the performance of an ensemble of 5 networks used to learn the dynamics of the CartPole and the MountainCar environments (CartPole-v0 and MountainCar-v0 in OpenGym). The network has been trained with 1000 samples, batch size of 64 elements and a learning rate of 0.01. The network has 1 hidden layer with `in_features=80` and `out_features=40`.
 
 ![Prediction error at different horizon lengths](example-cartpole.png "Cartpole") ![alt-text-2](example-mountaincar.png "MountainCar")
 
