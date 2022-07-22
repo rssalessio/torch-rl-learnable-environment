@@ -91,8 +91,8 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
 ## Roadmap
 
 - Implemented Gaussian Ensemble
-- Training support
-- Multi-trajectory support
+- Added Training support
+- Added Multi-trajectory support
 
 ### Implemented environments
 
@@ -111,3 +111,4 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
 
 - Add Hopper, Ant, Half-Cheetah, Inverted double-pendulum, Swimmer, Humanoid environments
 - Update to new Gym API
+- Implement tests
