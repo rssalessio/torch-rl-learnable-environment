@@ -37,6 +37,7 @@ class LearnableEnvironment(gym.Env):
         self.use_learnt_reward_fn = use_learnt_reward_fn
         self.custom_reward_fn = custom_reward_fn
         self.seed(seed)
+        self.vectorized_check_action = np.vectorize(self.action_space.contains)
 
     @abstractmethod
     def _termination_fn(self, state: StateType, action: ActionType, next_state: StateType) -> bool:
@@ -55,15 +56,20 @@ class LearnableEnvironment(gym.Env):
         return [seed]
 
     def _step(self, state: StateType, action: ActionType) -> Tuple[StateType, float, bool, Dict[str, Union[StateType, NDArray[np.float64]]]]:
-        if not self.action_space.contains(action):
+        if not np.all(self.vectorized_check_action(action)):
             err_msg = "%r (%s) invalid" % (action, type(action))
             raise Exception(err_msg)
 
         # Reshape according to state
         _action = np.array(action)
         action_reshaped = np.expand_dims(_action, axis=tuple(range(len(_action.shape), len(state.shape))))
-        inputs = np.concatenate((state, action_reshaped), axis=-1)[None, :]
+        inputs = np.concatenate((state, action_reshaped), axis=-1)
+
+        if len(inputs.shape) < 2:
+            inputs = inputs[None, :]
+
         info = {}
+        batch_size = inputs.shape[0]
         if isinstance(self.model, GaussianEnsembleModel):
             ensemble_means, ensemble_vars = self.model.predict(inputs)
             ensemble_stds = np.sqrt(ensemble_vars)
@@ -71,22 +77,29 @@ class LearnableEnvironment(gym.Env):
 
             ensemble_samples = ensemble_means + np.random.normal(size=ensemble_means.shape) * ensemble_stds
             
-            model_idx = np.random.choice(self.model.elite_models_idxs)
+            model_idxs = np.random.choice(self.model.elite_models_idxs, size=batch_size)
 
-            samples = ensemble_samples[model_idx, 0, :]
-            samples_means = ensemble_means[model_idx, 0, :]
-            samples_std = ensemble_stds[model_idx, 0, :]
+            batch_idxs = np.arange(0, batch_size)
+            samples = ensemble_samples[model_idxs, batch_idxs]
+            samples_means = ensemble_means[model_idxs, batch_idxs]
+            samples_std = ensemble_stds[model_idxs, batch_idxs]
             info = {'mean': samples_means, 'std': samples_std}
 
         else:
             raise Exception('Not implemented!')
 
-        next_state = samples[:-1]
-        
-        done = self._termination_fn(state, action, next_state)
-        reward = samples[-1] if self.use_learnt_reward_fn else self._reward_fn(state, action, next_state, done)
-        if done:
-            info['terminal_observation'] = next_state
+
+        if batch_size == 1:
+            next_state = samples[0, :-1]
+            done = self._termination_fn(state, action, next_state)
+            reward = samples[:, -1] if self.use_learnt_reward_fn else self._reward_fn(state, action, next_state, done)
+            if done:
+                info['terminal_observation'] = next_state
+        else:
+            next_state = samples[:, :-1]
+            done = np.array([self._termination_fn(state[x], action[x], next_state[x]) for x in range(batch_size)])
+            reward = np.array([samples[x, -1] if self.use_learnt_reward_fn else self._reward_fn(state[x], action[x], next_state[x], done[x]) for x in range(batch_size)])
+
         return next_state, reward, done, info
 
     def step(self, action: ActionType) -> Tuple[StateType, float, bool, Dict[str, Union[StateType, NDArray[np.float64]]]]:

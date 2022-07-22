@@ -74,6 +74,7 @@ for i in range(5000):
     samples.append(Experience(state, action, reward, next_state, done))
     state = next_state if not done else env.reset()
 
+
 # Evaluate model
 for idx, experience in enumerate(samples):
     if experience.done: continue
