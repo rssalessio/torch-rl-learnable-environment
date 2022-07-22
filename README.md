@@ -16,6 +16,13 @@ Author: Alessio Russo, alessior@kth.se
 
 Clone the library and install it using `pip install`. Check the example in `example/test.py`, or the example down below.
 
+### Requirements
+
+The library needs Python 3.7 to run and the following liraries:
+
+- NumPy, Scikit-learn, Gym, Pydantic, PyTorch
+- Matplotlib to run the example
+
 ## Example
 
 In the following example we create an ensemble of 5 networks to emulate the CartPole environment in OpenGym. Refer to the file in example/test.py for more details.

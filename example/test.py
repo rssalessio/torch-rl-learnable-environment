@@ -27,7 +27,7 @@ network = GaussianEnsembleNetwork(n_models, layers)
 
 # Use ensemble network to create a model
 model = GaussianEnsembleModel(network, lr=1e-2)
-env = gym.make("CartPole-v0")
+env = gym.make("CartPole-v1")
 state = env.reset()
 
 # Sample data from true environment
@@ -69,7 +69,9 @@ for step_length in range(1, max_horizon):
             next_state, reward, done, info = envEnsemble._step(state, samples[idx + t].action)
             error.append(np.linalg.norm(samples[idx + t].next_state - next_state, 2))
             state = next_state
-            if done: break
+            if done:
+                envEnsemble.reset()
+                break
         prediction_stats[step_length].append(np.mean(error))
 
 x_data = np.arange(max_horizon)[1:]

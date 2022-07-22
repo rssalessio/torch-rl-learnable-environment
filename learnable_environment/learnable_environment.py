@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 StateType = NDArray[np.float64]
 ActionType = Union[float, int, NDArray[Union[np.float64, np.int64]]]
 
-class LearnableEnvironment(gym.Env, ABC):
+class LearnableEnvironment(gym.Env):
     """
     Description:
         An environment that is learnt using a neural network

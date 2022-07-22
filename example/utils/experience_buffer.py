@@ -26,10 +26,10 @@ class ExperienceBuffer(object):
     def pop(self) -> Experience:
         return self.buffer.pop()
 
-    def sample_all(self) -> Tuple[NDArray[np.float64], NDArray, NDArray[np.float64], NDArray[np.float64], NDArray[np.bool]]:
+    def sample_all(self) -> Tuple[NDArray[np.float64], NDArray, NDArray[np.float64], NDArray[np.float64], NDArray[np.bool_]]:
         return self.sample(len(self.buffer))
 
-    def sample(self, batch_size: int) -> Tuple[NDArray[np.float64], NDArray, NDArray[np.float64], NDArray[np.float64], NDArray[np.bool]]:
+    def sample(self, batch_size: int) -> Tuple[NDArray[np.float64], NDArray, NDArray[np.float64], NDArray[np.float64], NDArray[np.bool_]]:
         if batch_size > len(self.buffer):
             raise MemoryError('Requested more data than what is available from the buffer!')
 

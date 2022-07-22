@@ -10,16 +10,23 @@ from numpy.typing import NDArray
 
 class GaussianEnsembleModel(EnsembleModel):
     """ Represents an ensemble model that outputs mean and variance of a Gaussian distribution """
+
     def __init__(self,
             ensemble_model: GaussianEnsembleNetwork,
             lr: float = 1e-3,
-            elite_proportion: float = 0.2):
-        super(GaussianEnsembleModel, self).__init__(ensemble_model, elite_proportion)
-        self.optimizer = torch.optim.Adam(self.ensemble_model.parameters(), lr=lr)
-        self.scaler = StandardScaler()
+            elite_proportion: float = 0.2,
+            device: torch.device = torch.device('cpu')):
+        super(GaussianEnsembleModel, self).__init__(ensemble_model, lr, elite_proportion, device)
+        self._scaler = StandardScaler()
+    
+    @property
+    def scaler(self) -> StandardScaler:
+        """ Returns the scaler used by the ensemble """
+        return self._scaler
 
     def predict(self, input: NDArray[np.float64]) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
-        input = torch.from_numpy(self.scaler.transform(input)).float()
+        """ Predict using the ensemble """
+        input = torch.from_numpy(self.scaler.transform(input)).to(self.device).float()
         mean, logvar = self.ensemble_model(input[None, :, :].repeat(self.network_size, 1, 1))
         return mean.detach().numpy(), logvar.exp().detach().numpy()
 
@@ -67,8 +74,8 @@ class GaussianEnsembleModel(EnsembleModel):
         losses = []
         for start_pos in range(0, data.shape[0], batch_size):
             idx = train_idx[:, start_pos: start_pos + batch_size]
-            train_input = torch.from_numpy(data[idx]).float()
-            train_label = torch.from_numpy(target[idx]).float()
+            train_input = torch.from_numpy(data[idx]).to(self.device).float()
+            train_label = torch.from_numpy(target[idx]).to(self.device).float()
             mse_loss, var_loss = self._training_step(train_input, train_label, use_decay, variance_regularizer_factor, decay_regularizer_factor)
             losses.append(mse_loss)
         return losses
@@ -125,8 +132,8 @@ class GaussianEnsembleModel(EnsembleModel):
         training_data = self.scaler.fit_transform(training_data)
         test_data = self.scaler.transform(test_data)
 
-        test_data = torch.from_numpy(test_data).float()
-        test_target = torch.from_numpy(test_target).float()
+        test_data = torch.from_numpy(test_data).to(self.device).float()
+        test_target = torch.from_numpy(test_target).to(self.device).float()
         test_data = test_data[None, :, :].repeat([self.network_size, 1, 1])
         test_target = test_target[None, :, :].repeat([self.network_size, 1, 1])
 
