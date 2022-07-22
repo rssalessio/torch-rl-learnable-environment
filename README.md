@@ -14,7 +14,7 @@ Author: Alessio Russo, alessior@kth.se
 
 ## How to use it
 
-Clone the library and install it using `pip install`. Check the example in `example/test.py`, or the example down below.
+Clone the library and install it using `pip install .`. Check the example in `example/test.py`, or the example down below.
 
 ### Requirements
 
