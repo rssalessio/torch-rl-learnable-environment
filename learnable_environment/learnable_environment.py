@@ -1,7 +1,7 @@
 import gym
 import numpy as np
 from numpy.typing import NDArray
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from gym.utils import seeding
 from learnable_environment.ensemble_model import GaussianEnsembleModel
 from learnable_environment.ensemble_model import EnsembleModel
@@ -89,7 +89,6 @@ class LearnableEnvironment(gym.Env):
             info['terminal_observation'] = next_state
         return next_state, reward, done, info
 
-
     def step(self, action: ActionType) -> Tuple[StateType, float, bool, Dict[str, Union[StateType, NDArray[np.float64]]]]:
         next_state, reward, done, info = self._step(self.state, action)
         self.state = next_state
@@ -104,4 +103,35 @@ class LearnableEnvironment(gym.Env):
 
     def close(self):
         pass
+
+    def train(self, 
+            state: NDArray,
+            action: NDArray,
+            reward: NDArray,
+            next_state: NDArray,
+            batch_size: int,
+            holdout_ratio: int = 0.2,
+            max_epochs: int = 1000,
+            max_epochs_since_update: int = 5,
+            use_decay: bool = False,
+            variance_regularizer_factor: float = 1e-2,
+            decay_regularizer_factor: float = 1e-3) -> Tuple[List[float], List[float]]:
+        return self.model.train(state, action, reward, next_state,
+            batch_size, holdout_ratio, max_epochs, max_epochs_since_update,
+            use_decay, variance_regularizer_factor, decay_regularizer_factor)
+
+    def train_on_batch(self, 
+            data: Tuple[List[StateType], List[ActionType], List[float], List[StateType]],
+            batch_size: int,
+            holdout_ratio: int = 0.2,
+            max_epochs: int = 1000,
+            max_epochs_since_update: int = 5,
+            use_decay: bool = False,
+            variance_regularizer_factor: float = 1e-2,
+            decay_regularizer_factor: float = 1e-3) -> Tuple[List[float], List[float]]:
+        assert len(data) == 4
+        return self.train(data[0], data[1], data[2], data[3],
+            batch_size, holdout_ratio, max_epochs, max_epochs_since_update,
+            use_decay, variance_regularizer_factor, decay_regularizer_factor)
+
     

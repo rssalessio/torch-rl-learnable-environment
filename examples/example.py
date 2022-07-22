@@ -2,12 +2,14 @@ import numpy as np
 import gym
 import matplotlib.pyplot as plt
 from typing import List
+
+from sklearn import ensemble
 from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment, MountainCarContinuousLearnableEnvironment
 from learnable_environment.ensemble_model import GaussianEnsembleModel, LayerInfo, GaussianEnsembleNetwork
 from learnable_environment.environments.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
 from utils.experience_buffer import Experience, ExperienceBuffer
 
-
+# Create environment
 ENV_NAME = 'CartPole-v1'
 env = gym.make(ENV_NAME)
 
@@ -33,33 +35,6 @@ network = GaussianEnsembleNetwork(n_models, layers)
 # Use ensemble network to create a model
 model = GaussianEnsembleModel(network, lr=1e-2)
 
-state = env.reset()
-
-# Sample data from true environment
-for i in range(num_samples):
-    action = env.action_space.sample()
-    next_state, reward, done, info = env.step(action)
-    buffer.append(Experience(state, action, reward, next_state, done))
-    state = next_state
-    if done:
-        state = env.reset()
-
-# Train ensemble
-state, action, reward, next_state, done = buffer.sample_all()
-training_losses, test_losses = model.train(state, action, reward, next_state, batch_size = batch_size, holdout_ratio = 0.2, use_decay=False)
-
-# Test ensemble
-prediction_error_stats = {x: [] for x in range(1, max_horizon + 1)}
-samples: List[Experience] = []
-state = env.reset()
-
-# Collect data
-for i in range(5000):
-    action = env.action_space.sample()
-    next_state, reward, done, info = env.step(action)
-    samples.append(Experience(state, action, reward, next_state, done))
-    state = next_state if not done else env.reset()
-
 # Test prediction with different time horizons
 if 'CartPole' in ENV_NAME:
     envEnsemble = CartPoleLearnableEnvironment(model=model)
@@ -73,6 +48,33 @@ else:
     raise Exception('Model not implemented!')
 
 
+state = env.reset()
+
+# Sample data from true environment
+for i in range(num_samples):
+    action = env.action_space.sample()
+    next_state, reward, done, info = env.step(action)
+    buffer.append(Experience(state, action, reward, next_state, done))
+    state = next_state
+    if done:
+        state = env.reset()
+
+# Train ensemble
+envEnsemble.train_on_batch(data = buffer.sample_all()[:4], batch_size = batch_size, holdout_ratio = 0.2, use_decay=False)
+
+# Test ensemble
+prediction_error_stats = {x: [] for x in range(1, max_horizon + 1)}
+samples: List[Experience] = []
+state = env.reset()
+
+# Collect data
+for i in range(5000):
+    action = env.action_space.sample()
+    next_state, reward, done, info = env.step(action)
+    samples.append(Experience(state, action, reward, next_state, done))
+    state = next_state if not done else env.reset()
+
+# Evaluate model
 for idx, experience in enumerate(samples):
     if experience.done: continue
     state, action, _, _, _ = experience
@@ -86,6 +88,7 @@ for idx, experience in enumerate(samples):
             envEnsemble.reset()
             break
 
+# Plot results
 x_data = np.arange(max_horizon + 1)[1:]
 y_mean = np.array([np.mean(prediction_error_stats[idx]) for idx in prediction_error_stats.keys()])
 y_cf = 1.96 * np.array([np.std(prediction_error_stats[idx])/np.sqrt(len(prediction_error_stats[idx])) for idx in prediction_error_stats.keys()])
