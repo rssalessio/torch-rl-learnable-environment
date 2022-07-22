@@ -8,7 +8,7 @@ from learnable_environment.environments.mujoco.invertedpendulum import InvertedP
 from utils.experience_buffer import Experience, ExperienceBuffer
 
 
-ENV_NAME = 'MountainCar-v0'
+ENV_NAME = 'CartPole-v1'
 env = gym.make(ENV_NAME)
 
 # Parameters
@@ -49,7 +49,7 @@ state, action, reward, next_state, done = buffer.sample_all()
 training_losses, test_losses = model.train(state, action, reward, next_state, batch_size = batch_size, holdout_ratio = 0.2, use_decay=False)
 
 # Test ensemble
-prediction_stats = {x: [] for x in range(1, max_horizon + 1)}
+prediction_error_stats = {x: [] for x in range(1, max_horizon + 1)}
 samples: List[Experience] = []
 state = env.reset()
 
@@ -79,15 +79,16 @@ for idx, experience in enumerate(samples):
     for t in range(max_horizon):
         if (idx + t) >= len(samples): break
         next_state, reward, done, info = envEnsemble._step(state, samples[idx + t].action)
-        prediction_stats[t+1].append(np.linalg.norm(samples[idx + t].next_state - next_state, 2))
+        prediction_error_stats[t+1].append(np.linalg.norm(samples[idx + t].next_state - next_state, 2))
         state = next_state
+
         if done or samples[idx + t].done:
             envEnsemble.reset()
             break
 
 x_data = np.arange(max_horizon + 1)[1:]
-y_mean = np.array([np.mean(prediction_stats[idx]) for idx in prediction_stats.keys()])
-y_cf = 1.96 * np.array([np.std(prediction_stats[idx])/np.sqrt(len(prediction_stats[idx])) for idx in prediction_stats.keys()])
+y_mean = np.array([np.mean(prediction_error_stats[idx]) for idx in prediction_error_stats.keys()])
+y_cf = 1.96 * np.array([np.std(prediction_error_stats[idx])/np.sqrt(len(prediction_error_stats[idx])) for idx in prediction_error_stats.keys()])
 
 plt.plot(x_data, y_mean)
 plt.fill_between(x_data, (y_mean - y_cf), (y_mean + y_cf), color='b', alpha=.1)
@@ -95,5 +96,3 @@ plt.xlabel('Prediction horizon')
 plt.title(f'{ENV_NAME} - Average $\ell_2$ error (95% confidence interval)')
 plt.grid()
 plt.show()
-
-

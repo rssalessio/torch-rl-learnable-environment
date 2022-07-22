@@ -66,7 +66,7 @@ while not done:
 
 ## Example - Prediction error
 
-In the following plots we see the performance of an ensemble of 5 networks used to learn the dynamics of the CartPole and the MountainCar environments (CartPole-v0 and MountainCar-v0 in OpenGym). The network has been trained with 3000 samples, batch size of 64 elements and a learning rate of 0.01. The network has 1 hidden layer with `in_features=80` and `out_features=40`.
+In the following plots we see the performance of an ensemble of 5 networks used to learn the dynamics of the CartPole and the MountainCar environments (CartPole-v1 and MountainCar-v0 in OpenGym). The network has been trained with 3000 samples, batch size of 64 elements and a learning rate of 0.01. The network has 1 hidden layer with `in_features=32` and `out_features=16`.
 
 ![Prediction error at different horizon lengths](examples/img/example-mountaincar.png "MountainCar") ![Prediction error at different horizon lengths](examples/img/example-mountaincarcontinuous.png "MountainCarContinuous")![Prediction error at different horizon lengths](examples/img/example-cartpole.png "Cartpole")
 
