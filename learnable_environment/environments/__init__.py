@@ -1,3 +1,2 @@
-from .cartpole import CartPoleLearnableEnvironment
-from .mountaincar import MountainCarLearnableEnvironment
-from .mountaincar_continuous import MountainCarContinuousLearnableEnvironment
+from .classic_control import *
+from .mujoco import *

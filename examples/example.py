@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 from typing import List
 from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment, MountainCarContinuousLearnableEnvironment
 from learnable_environment.ensemble_model import GaussianEnsembleModel, LayerInfo, GaussianEnsembleNetwork
+from learnable_environment.environments.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
 from utils.experience_buffer import Experience, ExperienceBuffer
 
 
-ENV_NAME = 'MountainCarContinuous-v0'
+ENV_NAME = 'MountainCar-v0'
 env = gym.make(ENV_NAME)
 
 # Parameters
@@ -24,9 +25,9 @@ buffer = ExperienceBuffer(num_samples)
 
 # Network definition
 layers = [
-    LayerInfo(input_size = state_dim + action_dim, output_size = 80), 
-    LayerInfo(input_size = 80, output_size = 40),
-    LayerInfo(input_size = 40, output_size = state_dim + reward_dim)]
+    LayerInfo(input_size = state_dim + action_dim, output_size = 32),
+    LayerInfo(input_size = 32, output_size = 16),
+    LayerInfo(input_size = 16, output_size = state_dim + reward_dim)]
 network = GaussianEnsembleNetwork(n_models, layers)
 
 # Use ensemble network to create a model
@@ -66,6 +67,8 @@ elif 'MountainCar-v0' == ENV_NAME:
     envEnsemble = MountainCarLearnableEnvironment(model=model)
 elif 'MountainCarContinuous-v0' == ENV_NAME:
     envEnsemble = MountainCarContinuousLearnableEnvironment(model=model)
+elif 'InvertedPendulum' in ENV_NAME:
+    envEnsemble = InvertedPendulumLearnableEnvironment(model=model)
 else:
     raise Exception('Model not implemented!')
 
@@ -78,7 +81,7 @@ for idx, experience in enumerate(samples):
         next_state, reward, done, info = envEnsemble._step(state, samples[idx + t].action)
         prediction_stats[t+1].append(np.linalg.norm(samples[idx + t].next_state - next_state, 2))
         state = next_state
-        if done:
+        if done or samples[idx + t].done:
             envEnsemble.reset()
             break
 

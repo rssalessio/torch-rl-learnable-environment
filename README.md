@@ -20,7 +20,7 @@ Clone the library and install it using `pip install`. Check the example in `exam
 
 The library needs Python 3.7 to run and the following liraries:
 
-- NumPy, Scikit-learn, Gym, Pydantic, PyTorch
+- NumPy, Scikit-learn, Gym, Pydantic, PyTorch, Mujoco-py
 - Matplotlib to run the example
 
 ## Example
@@ -55,7 +55,7 @@ model = GaussianEnsemble(network, lr=1e-2)
 
 
 # Test ensemble
-envEnsemble = CartPoleLearnableEnvironment(model)
+envEnsemble = CartPoleLearnableEnvironment(model=model)
 done = False
 while not done:
     action = envEnsemble.action_space.sample()
@@ -90,15 +90,18 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
 
 ## Roadmap
 
-- Add MujoCo environments
+- Add Hopper, Ant, Half-Cheetah, Inverted double-pendulum, Swimmer, Humanoid environments
 - Update to new Gym API
 - Add support for multi-trajectory prediction
 
 ### Implemented environments
 
-- CartPole
-- MountainCar
-- MountainCarContinuous
+- Classic Control
+  - CartPole
+  - MountainCar
+  - MountainCarContinuous
+- MujoCo
+  - InvertedPendulum
 
 ### Implemented ensembles
 
