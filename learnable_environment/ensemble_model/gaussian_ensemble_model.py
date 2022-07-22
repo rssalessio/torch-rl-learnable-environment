@@ -113,7 +113,7 @@ class GaussianEnsembleModel(EnsembleModel):
         assert len(state) == len(action) == len(reward) == len(next_state)
 
         delta_state = next_state - state
-        data = np.concatenate((state, action[:, None]), axis=-1)
+        data = np.concatenate((state, action[:, None] if len(action.shape) < len(state.shape) else action), axis=-1)
         target = np.concatenate((delta_state, reward[:, None]), axis=-1)
 
         epochs_since_update = 0

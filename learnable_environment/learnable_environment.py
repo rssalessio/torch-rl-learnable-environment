@@ -55,10 +55,14 @@ class LearnableEnvironment(gym.Env):
         return [seed]
 
     def _step(self, state: StateType, action: ActionType) -> Tuple[StateType, float, bool, Dict[str, Union[StateType, NDArray[np.float64]]]]:
-        err_msg = "%r (%s) invalid" % (action, type(action))
-        assert self.action_space.contains(action), err_msg
+        if not self.action_space.contains(action):
+            err_msg = "%r (%s) invalid" % (action, type(action))
+            raise Exception(err_msg)
 
-        inputs = np.array([np.concatenate((state, [action]), axis=-1)])
+        # Reshape according to state
+        _action = np.array(action)
+        action_reshaped = np.expand_dims(_action, axis=tuple(range(len(_action.shape), len(state.shape))))
+        inputs = np.concatenate((state, action_reshaped), axis=-1)[None, :]
         info = {}
         if isinstance(self.model, GaussianEnsembleModel):
             ensemble_means, ensemble_vars = self.model.predict(inputs)
