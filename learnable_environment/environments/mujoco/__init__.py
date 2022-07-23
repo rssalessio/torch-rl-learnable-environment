@@ -1,1 +1,2 @@
 from .invertedpendulum import InvertedPendulumLearnableEnvironment
+from .hopper import HopperLearnableEnvironment

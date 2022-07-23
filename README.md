@@ -80,7 +80,7 @@ All environments are in `learnable_environment/environments`. Any new environmen
 
 In addition to that, make sure to define the `observation_space` and `action_space` variables in the constructor.
 
-Check the example in `learnable_environment/environments/cartpole.py` for more details.
+Check the example in `learnable_environment/environments/classic_control/cartpole.py` for more details.
 
 ## How to add new ensembles or transition function models
 
@@ -103,6 +103,7 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
   - MountainCarContinuous
 - MujoCo
   - InvertedPendulum
+  - Hopper
 
 ### Implemented ensembles
 
@@ -110,6 +111,7 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
 
 ### Todo
 
-- Add Hopper, Ant, Half-Cheetah, Inverted double-pendulum, Swimmer, Humanoid environments
+- Add Ant, Half-Cheetah, Inverted double-pendulum, Swimmer, Humanoid environments
 - Update to new Gym API
 - Implement tests
+- Add render
