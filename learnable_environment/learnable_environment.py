@@ -93,7 +93,6 @@ class LearnableEnvironment(gym.Env):
         else:
             raise Exception('Not implemented!')
 
-
         if batch_size == 1:
             next_state = samples[0, :-1]
             done = self._termination_fn(state, action, next_state)
@@ -103,7 +102,8 @@ class LearnableEnvironment(gym.Env):
         else:
             next_state = samples[:, :-1]
             done = np.array([self._termination_fn(state[x], action[x], next_state[x]) for x in range(batch_size)])
-            reward = np.array([samples[x, -1] if self.use_learnt_reward_fn else self._reward_fn(state[x], action[x], next_state[x], done[x]) for x in range(batch_size)])
+            reward = np.array(
+                [samples[x, -1] if self.use_learnt_reward_fn and not self._reward_fn else self._reward_fn(state[x], action[x], next_state[x], done[x]) for x in range(batch_size)])
 
         return next_state, reward, done, info
 

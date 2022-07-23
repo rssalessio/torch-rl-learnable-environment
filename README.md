@@ -80,6 +80,9 @@ All environments are in `learnable_environment/environments`. Any new environmen
 
 In addition to that, make sure to define the `observation_space` and `action_space` variables in the constructor.
 
+Optionally, you can decide to set `_reward_fn` to `None` in case it is not possible to compute the reward (e.g., like in the Hopper environment where
+the reward function depends on some hidden variable).
+
 Check the example in `learnable_environment/environments/classic_control/cartpole.py` for more details.
 
 ## How to add new ensembles or transition function models
