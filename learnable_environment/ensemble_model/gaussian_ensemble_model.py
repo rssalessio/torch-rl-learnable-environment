@@ -1,5 +1,6 @@
+from __future__ import annotations
 from functools import reduce
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Type
 import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
@@ -26,9 +27,14 @@ class GaussianEnsembleModel(EnsembleModel):
 
     def predict(self, input: NDArray[np.float64]) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
         """ Predict using the ensemble """
+        mean, var = self._predict(input)
+        return mean.detach().numpy(), var.detach().numpy()
+
+    def _predict(self, input: NDArray[np.float64]) -> Tuple[torch.Tensor[torch.float64], torch.Tensor[torch.float64]]:
+        """ Predict using the ensemble """
         input = torch.from_numpy(self.scaler.transform(input)).to(self.device).float()
         mean, logvar = self.ensemble_model(input[None, :, :].repeat(self.network_size, 1, 1))
-        return mean.detach().numpy(), logvar.exp().detach().numpy()
+        return mean, logvar.exp()
 
     def _ll_loss(self, mean: torch.Tensor, logvar: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """
@@ -154,6 +160,43 @@ class GaussianEnsembleModel(EnsembleModel):
 
         return training_losses, test_losses
 
+    def compute_kl_divergence(self,
+            inputs: NDArray,
+            modelB: GaussianEnsembleModel,
+            mask: NDArray[np.bool_] = None,
+            num_avg_over_ensembles: int = 10) -> Tuple[torch.Tensor, torch.Tensor]:
+        assert self.network_size == modelB.network_size
+        assert num_avg_over_ensembles > 0
+
+        if mask:
+            inputs = inputs[:, mask]
+
+        input_dim = inputs.shape[-1]
+        meanA, varA = self._predict(inputs)
+        meanB, varB = modelB._predict(inputs)
+
+        stdA, stdB = torch.sqrt(varA), torch.sqrt(varB)
+        batch_size = meanA.shape[1]
+        batch_idxs = np.arange(0, batch_size)
+
+        results = torch.zeros(num_avg_over_ensembles)
+
+        for idx in range(num_avg_over_ensembles):
+            modelA_idxs = np.random.choice(self.network_size, size=batch_size)
+            modelB_idxs = np.random.choice(self.network_size, size=batch_size)
+            meanA_sampled, meanB_sampled = meanA[modelA_idxs, batch_idxs], meanB[modelB_idxs, batch_idxs]
+            stdA_sampled, stdB_sampled = stdA[modelA_idxs, batch_idxs], stdB[modelB_idxs, batch_idxs]
+
+            term_1 = torch.divide(stdA_sampled, stdB_sampled).sum(-1)
+
+
+            term_2 = torch.multiply(1 / stdB_sampled, torch.pow(meanA_sampled - meanB_sampled, 2)).sum(-1)
+            term_3 = torch.log(torch.divide(torch.prod(stdB_sampled, axis=-1) , torch.prod(stdA_sampled, axis=-1)))
+            
+            res = 0.5 * (term_1 + term_2 - input_dim + term_3)
+            results[idx] = res.mean(-1)
+
+        return results.mean(), results.std()
 
 if __name__ == "__main__":
     from gaussian_ensemble_network import GaussianEnsembleNetwork

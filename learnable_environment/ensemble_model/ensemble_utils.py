@@ -1,23 +1,10 @@
-import torch
 import torch.nn as nn
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import BaseModel, validator
-from typing import Callable, List, Optional, Tuple, Dict
-from learnable_environment.ensemble_model.ensemble_linear_layer import EnsembleLinear
+from typing import List, Tuple, Dict
+from learnable_environment.ensemble_model.ensemble_linear_layer import EnsembleLinear, EnsembleLinearLayerInfo
 
-class LayerInfo(BaseModel):
-    input_size: int
-    output_size: int
-    weight_decay: float = 0.
-    bias: bool = True
-    activation_function: Optional[Callable[[],nn.Module]] = lambda: nn.SiLU()
-    device: torch.device = torch.device('cpu')
-
-    class Config:
-        arbitrary_types_allowed = True
-
-def create_ensemble_network_body(ensemble_size: int, layers: List[LayerInfo]) -> nn.Module:
+def create_ensemble_network_body(ensemble_size: int, layers: List[EnsembleLinearLayerInfo]) -> nn.Module:
     assert ensemble_size > 0
     _layers = []
     for idx, layer in enumerate(layers):
@@ -39,3 +26,4 @@ def save_best_result(
             snapshots[i] = (epoch, current)
             updated = True
     return updated, snapshots
+

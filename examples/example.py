@@ -5,7 +5,7 @@ from typing import List
 
 from sklearn import ensemble
 from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment, MountainCarContinuousLearnableEnvironment
-from learnable_environment.ensemble_model import GaussianEnsembleModel, LayerInfo, GaussianEnsembleNetwork
+from learnable_environment.ensemble_model import GaussianEnsembleModel, EnsembleLinearLayerInfo, GaussianEnsembleNetwork
 from learnable_environment.environments.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
 from utils.experience_buffer import Experience, ExperienceBuffer
 
@@ -27,9 +27,9 @@ buffer = ExperienceBuffer(num_samples)
 
 # Network definition
 layers = [
-    LayerInfo(input_size = state_dim + action_dim, output_size = 32),
-    LayerInfo(input_size = 32, output_size = 16),
-    LayerInfo(input_size = 16, output_size = state_dim + reward_dim)]
+    EnsembleLinearLayerInfo(input_size = state_dim + action_dim, output_size = 32),
+    EnsembleLinearLayerInfo(input_size = 32, output_size = 16),
+    EnsembleLinearLayerInfo(input_size = 16, output_size = state_dim + reward_dim)]
 network = GaussianEnsembleNetwork(n_models, layers)
 
 # Use ensemble network to create a model

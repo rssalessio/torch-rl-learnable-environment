@@ -1,6 +1,20 @@
 import math
+from typing import Callable, Optional
+from pydantic import BaseModel
 import torch
 import torch.nn as nn
+
+class EnsembleLinearLayerInfo(BaseModel):
+    input_size: int
+    output_size: int
+    weight_decay: float = 0.
+    bias: bool = True
+    activation_function: Optional[Callable[[],nn.Module]] = lambda: nn.SiLU()
+    device: torch.device = torch.device('cpu')
+
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class EnsembleLinear(nn.Module):
     """

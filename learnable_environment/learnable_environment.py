@@ -1,3 +1,4 @@
+from __future__ import annotations
 import gym
 import numpy as np
 from numpy.typing import NDArray
@@ -31,13 +32,17 @@ class LearnableEnvironment(gym.Env):
             use_learnt_reward_fn: bool = False,
             custom_reward_fn: Optional[Callable[[StateType, ActionType, StateType, bool], float]] = None,
             seed: Optional[int]  = None):
-        self.model = model
+        self._model = model
         self.state = None
         self.n_steps = 0
         self.use_learnt_reward_fn = use_learnt_reward_fn
         self.custom_reward_fn = custom_reward_fn
         self.seed(seed)
         self.vectorized_check_action = np.vectorize(self.action_space.contains)
+
+    @property
+    def model(self) -> EnsembleModel:
+        return self._model
 
     @abstractmethod
     def _termination_fn(self, state: StateType, action: ActionType, next_state: StateType) -> bool:
@@ -70,14 +75,14 @@ class LearnableEnvironment(gym.Env):
 
         info = {}
         batch_size = inputs.shape[0]
-        if isinstance(self.model, GaussianEnsembleModel):
-            ensemble_means, ensemble_vars = self.model.predict(inputs)
+        if isinstance(self._model, GaussianEnsembleModel):
+            ensemble_means, ensemble_vars = self._model.predict(inputs)
             ensemble_stds = np.sqrt(ensemble_vars)
             ensemble_means[:, :, :-1] += state
 
             ensemble_samples = ensemble_means + np.random.normal(size=ensemble_means.shape) * ensemble_stds
             
-            model_idxs = np.random.choice(self.model.elite_models_idxs, size=batch_size)
+            model_idxs = np.random.choice(self._model.elite_models_idxs, size=batch_size)
 
             batch_idxs = np.arange(0, batch_size)
             samples = ensemble_samples[model_idxs, batch_idxs]
@@ -129,7 +134,7 @@ class LearnableEnvironment(gym.Env):
             use_decay: bool = False,
             variance_regularizer_factor: float = 1e-2,
             decay_regularizer_factor: float = 1e-3) -> Tuple[List[float], List[float]]:
-        return self.model.train(state, action, reward, next_state,
+        return self._model.train(state, action, reward, next_state,
             batch_size, holdout_ratio, max_epochs, max_epochs_since_update,
             use_decay, variance_regularizer_factor, decay_regularizer_factor)
 

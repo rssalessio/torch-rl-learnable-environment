@@ -1,11 +1,7 @@
-from functools import reduce
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import numpy as np
 import torch
-from sklearn.preprocessing import StandardScaler
 from learnable_environment.ensemble_model.ensemble_network import EnsembleNetwork
-from learnable_environment.ensemble_model.gaussian_ensemble_network import GaussianEnsembleNetwork
-from learnable_environment.ensemble_model.ensemble_utils import save_best_result
 from numpy.typing import NDArray
 from abc import ABC, abstractmethod
 
@@ -15,7 +11,6 @@ class EnsembleModel(ABC):
     network_size: int
     device: torch.device
     learning_rate: float
-
 
     def __init__(self,
             ensemble_model: EnsembleNetwork,

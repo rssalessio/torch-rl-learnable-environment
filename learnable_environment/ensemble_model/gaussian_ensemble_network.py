@@ -3,9 +3,9 @@ from typing import List, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from learnable_environment.ensemble_model.ensemble_linear_layer import EnsembleLinear
-from learnable_environment.ensemble_model.ensemble_network import EnsembleNetwork
-from learnable_environment.ensemble_model.ensemble_utils import LayerInfo, create_ensemble_network_body
+from .ensemble_linear_layer import EnsembleLinear, EnsembleLinearLayerInfo
+from .ensemble_network import EnsembleNetwork
+from .ensemble_utils import create_ensemble_network_body
 
 class GaussianEnsembleNetwork(EnsembleNetwork):
     """ Ensemble network that consists of fully connected layers. Outputs mean and variance """
@@ -14,7 +14,7 @@ class GaussianEnsembleNetwork(EnsembleNetwork):
 
     def __init__(self,
             ensemble_size: int,
-            layers: List[LayerInfo],
+            layers: List[EnsembleLinearLayerInfo],
             max_logvar: float = 0.5,
             min_logvar: float = -10,
             device: torch.device = torch.device('cpu')):

@@ -30,7 +30,7 @@ In the following example we create an ensemble of 5 networks to emulate the Cart
 ```python
 import numpy as np
 from learnable_environment import CartPoleLearnableEnvironment
-from learnable_environment.ensemble_model import GaussianEnsemble, LayerInfo, GaussianEnsembleNetwork
+from learnable_environment.ensemble_model import GaussianEnsemble, EnsembleLinearLayerInfo, GaussianEnsembleNetwork
 
 # Ensemble size
 n_models = 5
@@ -42,9 +42,9 @@ reward_dim = 1
 
 # Ensemble Network definition
 layers = [
-    LayerInfo(input_size = state_dim + action_dim, output_size = 120), 
-    LayerInfo(input_size = 120, output_size = 40),
-    LayerInfo(input_size = 40, output_size = state_dim + reward_dim)]
+    EnsembleLinearLayerInfo(input_size = state_dim + action_dim, output_size = 120), 
+    EnsembleLinearLayerInfo(input_size = 120, output_size = 40),
+    EnsembleLinearLayerInfo(input_size = 40, output_size = state_dim + reward_dim)]
 network = GaussianEnsembleNetwork(n_models, layers)
 
 # Use ensemble network to create a model
@@ -88,9 +88,10 @@ To add a new type of model that represents a transition function/reward function
 
 Integrate this model in the `LearnableEnvironment` class (in `learnable_environment/learnable_environment.py`) in the `_step` function (add a new `if isinstance(self.model, YourModelName)` with your code).
 
-## Roadmap
+## Roadmap and ToDo
 
 - Implemented Gaussian Ensemble
+  - Implemented KL-divergence computation between two different ensembles
 - Added Training support
 - Added Multi-trajectory support
 

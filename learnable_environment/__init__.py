@@ -1,9 +1,8 @@
-
 from .learnable_environment import LearnableEnvironment
 from .environments import CartPoleLearnableEnvironment, \
     MountainCarLearnableEnvironment, MountainCarContinuousLearnableEnvironment, InvertedPendulumLearnableEnvironment
 
-__version__       = '0.1.4'
+__version__       = '0.1.5'
 __author__        = 'Alessio Russo'
 __contributors__  = []
-__date__          = '22.07.2022'
+__date__          = '23.07.2022'
