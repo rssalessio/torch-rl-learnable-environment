@@ -10,7 +10,7 @@ class InvertedPendulumLearnableEnvironment(LearnableEnvironment):
         super(InvertedPendulumLearnableEnvironment, self).__init__(*args, **kwargs)
 
     def _termination_fn(self, state: StateType, action: ActionType, next_state: StateType) -> bool:
-        return bool(not np.isfinite(state).all() or (np.abs(state[1]) > 0.2))
+        return bool(not np.isfinite(next_state).all() or (np.abs(next_state[1]) > 0.2))
 
     def _reward_fn(self, state: StateType, action: ActionType, next_state: StateType, done: bool) -> float:
         return 1.0

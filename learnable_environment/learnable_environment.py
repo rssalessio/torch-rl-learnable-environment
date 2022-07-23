@@ -61,14 +61,15 @@ class LearnableEnvironment(gym.Env):
         return [seed]
 
     def _step(self, state: StateType, action: ActionType) -> Tuple[StateType, float, bool, Dict[str, Union[StateType, NDArray[np.float64]]]]:
-        if not np.all(self.vectorized_check_action(action)):
-            err_msg = "%r (%s) invalid" % (action, type(action))
-            raise Exception(err_msg)
-
         # Reshape according to state
         _action = np.array(action)
         action_reshaped = np.expand_dims(_action, axis=tuple(range(len(_action.shape), len(state.shape))))
-        inputs = np.concatenate((state, action_reshaped), axis=-1)
+        if len(state.shape) == 1:
+            assert self.action_space.contains(action)
+        else:
+            assert np.all(self.vectorized_check_action(action_reshaped))
+
+        inputs = np.concatenate((state, action_reshaped), axis=-1)       
 
         if len(inputs.shape) < 2:
             inputs = inputs[None, :]

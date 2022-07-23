@@ -57,7 +57,6 @@ envEnsemble2.train(state[n:-num_evaluation], action[n:-num_evaluation], reward[n
 env1 = CartPoleLearnableEnvironment(model=envEnsemble1)
 env2 = CartPoleLearnableEnvironment(model=envEnsemble2)
 
-
 inputs = np.concatenate((state[-num_evaluation:], action[-num_evaluation:][:,None]), axis = -1)
 mean_kl, std_kl = envEnsemble1.compute_kl_divergence(inputs, envEnsemble2, num_avg_over_ensembles=10)
 print(f'KL Divergence between the two models: {mean_kl.item()} +- {1.96 * std_kl.item() / np.sqrt(10)} (95% confidence)')

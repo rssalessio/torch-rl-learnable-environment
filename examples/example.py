@@ -3,14 +3,14 @@ import gym
 import matplotlib.pyplot as plt
 from typing import List
 
-from sklearn import ensemble
 from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment, MountainCarContinuousLearnableEnvironment
 from learnable_environment.ensemble_model import GaussianEnsembleModel, EnsembleLinearLayerInfo, GaussianEnsembleNetwork
+from learnable_environment.environments.mujoco.hopper import HopperLearnableEnvironment
 from learnable_environment.environments.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
 from utils.experience_buffer import Experience, ExperienceBuffer
 
 # Create environment
-ENV_NAME = 'CartPole-v1'
+ENV_NAME = 'Hopper-v2'
 env = gym.make(ENV_NAME)
 
 # Parameters
@@ -20,7 +20,7 @@ n_models = 5
 state_dim = np.prod(env.observation_space.shape)
 action_dim = 1 if isinstance(env.action_space, gym.spaces.Discrete) else np.prod(env.action_space.shape)
 reward_dim = 1
-max_horizon = 30
+max_horizon = 5
 
 # Buffer to save data
 buffer = ExperienceBuffer(num_samples)
@@ -44,6 +44,8 @@ elif 'MountainCarContinuous-v0' == ENV_NAME:
     envEnsemble = MountainCarContinuousLearnableEnvironment(model=model)
 elif 'InvertedPendulum' in ENV_NAME:
     envEnsemble = InvertedPendulumLearnableEnvironment(model=model)
+elif 'Hopper' in ENV_NAME:
+    envEnsemble = HopperLearnableEnvironment(model=model)
 else:
     raise Exception('Model not implemented!')
 
@@ -81,6 +83,7 @@ for idx, experience in enumerate(samples):
     state, action, _, _, _ = experience
     for t in range(max_horizon):
         if (idx + t) >= len(samples): break
+
         next_state, reward, done, info = envEnsemble._step(state, samples[idx + t].action)
         prediction_error_stats[t+1].append(np.linalg.norm(samples[idx + t].next_state - next_state, 2))
         state = next_state

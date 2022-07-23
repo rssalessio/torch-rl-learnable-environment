@@ -30,7 +30,7 @@ class MountainCarContinuousLearnableEnvironment(LearnableEnvironment):
 
     def _termination_fn(self, state: StateType, action: ActionType, next_state: StateType) -> bool:
         assert len(state) == 2
-        position, velocity = state[0], state[1]
+        position, velocity = next_state[0], next_state[1]
         return bool(
             position >= self.goal_position and velocity >= self.goal_velocity
         )
