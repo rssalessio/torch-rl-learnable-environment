@@ -10,7 +10,7 @@ from learnable_environment.environments.mujoco.invertedpendulum import InvertedP
 from utils.experience_buffer import Experience, ExperienceBuffer
 
 # Create environment
-ENV_NAME = 'Hopper-v2'
+ENV_NAME = 'CartPole-v1'
 env = gym.make(ENV_NAME)
 
 # Parameters
@@ -20,7 +20,7 @@ n_models = 5
 state_dim = np.prod(env.observation_space.shape)
 action_dim = 1 if isinstance(env.action_space, gym.spaces.Discrete) else np.prod(env.action_space.shape)
 reward_dim = 1
-max_horizon = 5
+max_horizon = 30
 
 # Buffer to save data
 buffer = ExperienceBuffer(num_samples)
