@@ -104,23 +104,16 @@ class GaussianEnsembleModel(EnsembleModel):
         return [np.sum(holdout_mse_losses), *save_best_result(epoch, snapshots, holdout_mse_losses)]
 
     def train(self,
-            state: NDArray,
-            action: NDArray,
-            reward: NDArray,
-            next_state: NDArray,
+            data: NDArray,
+            target: NDArray,
             batch_size: int,
-            holdout_ratio: int = 0.2,
+            holdout_ratio: float = 0.2,
             max_epochs: int = 1000,
             max_epochs_since_update: int = 5,
             use_decay: bool = False,
             variance_regularizer_factor: float = 1e-2,
             decay_regularizer_factor: float = 1e-3) -> Tuple[List[float], List[float]]:
         assert holdout_ratio > 0 and holdout_ratio < 1.
-        assert len(state) == len(action) == len(reward) == len(next_state)
-
-        delta_state = next_state - state
-        data = np.concatenate((state, action[:, None] if len(action.shape) < len(state.shape) else action), axis=-1)
-        target = np.concatenate((delta_state, reward[:, None]), axis=-1)
 
         epochs_since_update = 0
         num_training = int(data.shape[0] * (1-holdout_ratio))
@@ -200,11 +193,11 @@ class GaussianEnsembleModel(EnsembleModel):
 
 if __name__ == "__main__":
     from gaussian_ensemble_network import GaussianEnsembleNetwork
-    from ensemble_utils import LayerInfo
+    from ensemble_linear_layer import EnsembleLinearLayerInfo
     n_models = 5
     layers = [
-        LayerInfo(input_size = 2, output_size = 4, weight_decay = 0.1), 
-        LayerInfo(input_size = 4, output_size = 2, weight_decay = 0.05)]
+        EnsembleLinearLayerInfo(input_size = 2, output_size = 4, weight_decay = 0.1), 
+        EnsembleLinearLayerInfo(input_size = 4, output_size = 2, weight_decay = 0.05)]
     network = GaussianEnsembleNetwork(n_models, layers)
     ensemble = GaussianEnsembleModel(network)
     ensemble.scaler.fit([[1, 1], [3, 2]])

@@ -129,20 +129,27 @@ class LearnableEnvironment(gym.Env):
             reward: NDArray,
             next_state: NDArray,
             batch_size: int,
-            holdout_ratio: int = 0.2,
+            holdout_ratio: float = 0.2,
             max_epochs: int = 1000,
             max_epochs_since_update: int = 5,
             use_decay: bool = False,
             variance_regularizer_factor: float = 1e-2,
             decay_regularizer_factor: float = 1e-3) -> Tuple[List[float], List[float]]:
-        return self._model.train(state, action, reward, next_state,
+
+        assert len(state) == len(action) == len(reward) == len(next_state)
+
+        delta_state = next_state - state
+        data = np.concatenate((state, action[:, None] if len(action.shape) < len(state.shape) else action), axis=-1)
+        target = np.concatenate((delta_state, reward[:, None]), axis=-1)
+
+        return self._model.train(data, target,
             batch_size, holdout_ratio, max_epochs, max_epochs_since_update,
             use_decay, variance_regularizer_factor, decay_regularizer_factor)
 
     def train_on_batch(self, 
             data: Tuple[List[StateType], List[ActionType], List[float], List[StateType]],
             batch_size: int,
-            holdout_ratio: int = 0.2,
+            holdout_ratio: float = 0.2,
             max_epochs: int = 1000,
             max_epochs_since_update: int = 5,
             use_decay: bool = False,
