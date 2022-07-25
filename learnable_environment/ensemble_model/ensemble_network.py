@@ -23,3 +23,7 @@ class EnsembleNetwork(nn.Module, ABC):
     def get_decay_loss(self, exponent: float = 2) -> float:
         return NotImplemented
 
+    @abstractmethod
+    def reset(self):
+        return NotImplemented
+

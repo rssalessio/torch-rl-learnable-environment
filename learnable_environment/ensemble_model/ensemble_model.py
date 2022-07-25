@@ -11,6 +11,7 @@ class EnsembleModel(ABC):
     network_size: int
     device: torch.device
     learning_rate: float
+    model: torch.nn.Module
 
     def __init__(self,
             ensemble_model: EnsembleNetwork,
@@ -37,5 +38,13 @@ class EnsembleModel(ABC):
 
     @abstractmethod
     def train(self):
+        return NotImplemented
+
+    @abstractmethod
+    def train_on_trajectories(self):
+        return NotImplemented
+
+    @abstractmethod
+    def reset(self):
         return NotImplemented
 

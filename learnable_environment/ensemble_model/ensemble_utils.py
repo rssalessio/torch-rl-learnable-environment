@@ -1,14 +1,19 @@
 import torch.nn as nn
 import numpy as np
 from numpy.typing import NDArray
-from typing import List, Tuple, Dict
-from learnable_environment.ensemble_model.ensemble_linear_layer import EnsembleLinear, EnsembleLinearLayerInfo
+from typing import List, Tuple, Dict, Union, NamedTuple
+from learnable_environment.ensemble_model.layers import EnsembleGRU, EnsembleGRULayerInfo
+from learnable_environment.ensemble_model.layers import EnsembleLinear, EnsembleLinearLayerInfo
 
-def create_ensemble_network_body(ensemble_size: int, layers: List[EnsembleLinearLayerInfo]) -> nn.Module:
+def create_ensemble_network_body(ensemble_size: int, layers: List[Union[EnsembleGRULayerInfo,EnsembleLinearLayerInfo]]) -> nn.Module:
     assert ensemble_size > 0
     _layers = []
     for idx, layer in enumerate(layers):
-        _layers.append(EnsembleLinear(layer.input_size, layer.output_size, ensemble_size,  layer.weight_decay, layer.bias, layer.device))
+        # @TODO isinstance does not seem to work
+        if 'EnsembleLinearLayerInfo' in str(layer.__class__):
+            _layers.append(EnsembleLinear(layer.input_size, layer.output_size, ensemble_size,  layer.weight_decay, layer.bias, layer.device))
+        elif 'EnsembleGRULayerInfo' in str(layer.__class__):
+            _layers.append(EnsembleGRU(layer.input_size, layer.hidden_features, layer.num_layers, ensemble_size, layer.weight_decay, layer.bias, layer.device))
         if layer.activation_function:
             _layers.append(layer.activation_function())
 

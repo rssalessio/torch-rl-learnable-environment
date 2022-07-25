@@ -4,19 +4,12 @@ from pydantic import BaseModel
 import torch
 import torch.nn as nn
 
-class EnsembleLinearLayerInfo(BaseModel):
-    input_size: int
-    output_size: int
-    weight_decay: float = 0.
-    bias: bool = True
-    activation_function: Optional[Callable[[],nn.Module]] = lambda: nn.SiLU()
-    device: torch.device = torch.device('cpu')
+from .ensemble_layer import EnsembleLayer, EnsembleLayerInfo
 
-    class Config:
-        arbitrary_types_allowed = True
+class EnsembleLinearLayerInfo(EnsembleLayerInfo):
+    pass
 
-
-class EnsembleLinear(nn.Module):
+class EnsembleLinear(EnsembleLayer, nn.Module):
     """
         Fully connected layers for ensemble models
     """
@@ -27,8 +20,6 @@ class EnsembleLinear(nn.Module):
     weight_decay: float
     weight: torch.Tensor
     device: torch.device
-    inject_noise: bool
-    noise_dim: int
 
     def __init__(self, 
             in_features: int,
@@ -49,6 +40,9 @@ class EnsembleLinear(nn.Module):
         else:
             self.register_parameter('bias', None)
         self.reset_parameters()
+
+    def reset(self):
+        pass
 
     def reset_parameters(self) -> None:
         nn.init.kaiming_uniform_(self.weight, mode='fan_in', nonlinearity='relu')
