@@ -51,12 +51,17 @@ for i in range(num_samples):
 # Train ensemble
 state, action, reward, next_state, done = buffer.sample_all()
 n = int(num_samples * 0.5)
-envEnsemble1.train(state[:n], action[:n], reward[:n], next_state[:n], batch_size = 64, holdout_ratio = 0.2, use_decay=False)
-envEnsemble2.train(state[n:-num_evaluation], action[n:-num_evaluation], reward[n:-num_evaluation], next_state[n:-num_evaluation], batch_size = 64, holdout_ratio = 0.2, use_decay=False)
 
 env1 = CartPoleLearnableEnvironment(model=envEnsemble1)
 env2 = CartPoleLearnableEnvironment(model=envEnsemble2)
 
+env1.train(state[:n], action[:n], reward[:n], next_state[:n], batch_size = 64, holdout_ratio = 0.2, use_decay=False)
+env2.train(state[n:-num_evaluation], action[n:-num_evaluation], reward[n:-num_evaluation], next_state[n:-num_evaluation], batch_size = 64, holdout_ratio = 0.2, use_decay=False)
+
 inputs = np.concatenate((state[-num_evaluation:], action[-num_evaluation:][:,None]), axis = -1)
 mean_kl, std_kl = envEnsemble1.compute_kl_divergence(inputs, envEnsemble2, num_avg_over_ensembles=10)
+print(f'KL Divergence between the two models: {mean_kl.item()} +- {1.96 * std_kl.item() / np.sqrt(10)} (95% confidence)')
+
+inputs = np.concatenate((state[-num_evaluation:], action[-num_evaluation:][:,None]), axis = -1)
+mean_kl, std_kl = env1.compute_kl_divergence(state[-num_evaluation:], action[-num_evaluation:], env2, num_avg_over_ensembles=10)
 print(f'KL Divergence between the two models: {mean_kl.item()} +- {1.96 * std_kl.item() / np.sqrt(10)} (95% confidence)')

@@ -7,7 +7,7 @@ from gym.utils import seeding
 from learnable_environment.ensemble_model import GaussianEnsembleModel
 from learnable_environment.ensemble_model import EnsembleModel
 from abc import ABC, abstractmethod
-
+import torch
 
 StateType = NDArray[np.float64]
 ActionType = Union[float, int, NDArray[Union[np.float64, np.int64]]]
@@ -122,6 +122,20 @@ class LearnableEnvironment(gym.Env):
 
     def close(self):
         pass
+
+    def compute_kl_divergence(self,
+            state: NDArray,
+            action: NDArray,
+            modelB: LearnableEnvironment,
+            mask: NDArray[np.bool_] = None,
+            num_avg_over_ensembles: int = 10) -> Tuple[torch.Tensor, torch.Tensor]:
+        assert num_avg_over_ensembles > 0
+        data = np.concatenate((state, action[:, None] if len(action.shape) < len(state.shape) else action), axis=-1)
+        if isinstance(self._model, GaussianEnsembleModel):
+            return self.model.compute_kl_divergence(data, modelB.model, mask, num_avg_over_ensembles)
+
+        return None, None
+
 
     def train(self, 
             state: NDArray,
