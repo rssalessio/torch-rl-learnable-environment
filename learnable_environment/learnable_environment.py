@@ -115,6 +115,7 @@ class LearnableEnvironment(gym.Env):
 
     def reset(self) -> StateType:
         self.n_steps = 0
+        self.model.reset()
         return self._reset_fn()
 
     def render(self, mode='human'):
@@ -135,7 +136,14 @@ class LearnableEnvironment(gym.Env):
             use_decay: bool = False,
             variance_regularizer_factor: float = 1e-2,
             decay_regularizer_factor: float = 1e-3) -> Tuple[List[float], List[float]]:
-        return self._model.train(state, action, reward, next_state,
+
+        assert len(state) == len(action) == len(reward) == len(next_state)
+
+        delta_state = next_state - state
+        data = np.concatenate((state, action[:, None] if len(action.shape) < len(state.shape) else action), axis=-1)
+        target = np.concatenate((delta_state, reward[:, None]), axis=-1)
+
+        return self._model.train(data, target,
             batch_size, holdout_ratio, max_epochs, max_epochs_since_update,
             use_decay, variance_regularizer_factor, decay_regularizer_factor)
 

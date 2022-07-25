@@ -95,6 +95,7 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
 
 - Implemented Gaussian Ensemble
   - Implemented KL-divergence computation between two different ensembles
+  - Add GRU Support
 - Added Training support
 - Added Multi-trajectory support
 
