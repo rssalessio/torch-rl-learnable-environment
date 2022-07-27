@@ -153,7 +153,22 @@ class GaussianEnsembleModel(EnsembleModel):
 
         return training_losses, test_losses
 
-    def compute_kl_divergence(self,
+    def compute_log_prob_batch(self, inputs: NDArray) -> torch.Tensor:
+        mean, var = self._predict(inputs)
+
+        k = inputs.shape[-1]
+        ## [ num_networks, batch_size ]
+        log_prob = -1 / 2 * (k * np.log(2 * np.pi) + torch.log(var).sum(-1) + (torch.pow(torch.from_numpy(inputs) - mean, 2) / var).sum(-1))
+        
+        # ## [ batch_size ]
+        # prob = torch.exp(log_prob).sum(0)
+
+        # ## [ batch_size ]
+        # log_prob = torch.log(prob)
+
+        return log_prob.mean(0)
+
+    def compute_kl_divergence_over_batch(self,
             inputs: NDArray,
             modelB: GaussianEnsembleModel,
             mask: NDArray[np.bool_] = None,

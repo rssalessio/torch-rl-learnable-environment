@@ -59,8 +59,11 @@ env1.train(state[:n], action[:n], reward[:n], next_state[:n], batch_size = 64, h
 env2.train(state[n:-num_evaluation], action[n:-num_evaluation], reward[n:-num_evaluation], next_state[n:-num_evaluation], batch_size = 64, holdout_ratio = 0.2, use_decay=False)
 
 inputs = np.concatenate((state[-num_evaluation:], action[-num_evaluation:][:,None]), axis = -1)
-mean_kl, std_kl = envEnsemble1.compute_kl_divergence(inputs, envEnsemble2, num_avg_over_ensembles=10)
+mean_kl, std_kl = envEnsemble1.compute_kl_divergence_over_batch(inputs, envEnsemble2, num_avg_over_ensembles=10)
 print(f'KL Divergence between the two models: {mean_kl.item()} +- {1.96 * std_kl.item() / np.sqrt(10)} (95% confidence)')
 
-mean_kl, std_kl = env1.compute_kl_divergence(state[-num_evaluation:], action[-num_evaluation:], env2, num_avg_over_ensembles=10)
+mean_kl, std_kl = env1.compute_kl_divergence_over_batch(state[-num_evaluation:], action[-num_evaluation:], env2, num_avg_over_ensembles=10)
 print(f'KL Divergence between the two models: {mean_kl.item()} +- {1.96 * std_kl.item() / np.sqrt(10)} (95% confidence)')
+
+log_probs = env1.compute_log_prob_batch(state[-num_evaluation:], action[-num_evaluation:])
+print(f'Log probabilities: {log_probs}')

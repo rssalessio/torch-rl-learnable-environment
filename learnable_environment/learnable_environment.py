@@ -123,7 +123,16 @@ class LearnableEnvironment(gym.Env):
     def close(self):
         pass
 
-    def compute_kl_divergence(self,
+    def compute_log_prob_batch(self, states: NDArray, actions: NDArray) -> torch.Tensor:
+        if isinstance(self._model, GaussianEnsembleModel):
+            _action = np.array(actions)
+            actions_reshaped = np.expand_dims(_action, axis=tuple(range(len(_action.shape), len(states.shape))))
+            inputs = np.concatenate((states, actions_reshaped), axis=-1)    
+            return self.model.compute_log_prob_batch(inputs)
+        else:
+            raise Exception('Not implemented')
+
+    def compute_kl_divergence_over_batch(self,
             state: NDArray,
             action: NDArray,
             modelB: LearnableEnvironment,
@@ -132,10 +141,9 @@ class LearnableEnvironment(gym.Env):
         assert num_avg_over_ensembles > 0
         data = np.concatenate((state, action[:, None] if len(action.shape) < len(state.shape) else action), axis=-1)
         if isinstance(self._model, GaussianEnsembleModel):
-            return self.model.compute_kl_divergence(data, modelB.model, mask, num_avg_over_ensembles)
-
-        return None, None
-
+            return self.model.compute_kl_divergence_over_batch(data, modelB.model, mask, num_avg_over_ensembles)
+        else:
+            raise Exception('Not implemented')
 
     def train(self, 
             state: NDArray,

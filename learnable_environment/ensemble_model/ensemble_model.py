@@ -39,3 +39,4 @@ class EnsembleModel(ABC):
     def train(self):
         return NotImplemented
 
+
