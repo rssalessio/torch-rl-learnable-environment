@@ -123,12 +123,12 @@ class LearnableEnvironment(gym.Env):
     def close(self):
         pass
 
-    def compute_log_prob_batch(self, states: NDArray, actions: NDArray) -> torch.Tensor:
+    def compute_log_prob_batch(self, states: NDArray, actions: NDArray, next_states: NDArray, rewards: Optional[NDArray] = None) -> torch.Tensor:
         if isinstance(self._model, GaussianEnsembleModel):
             _action = np.array(actions)
             actions_reshaped = np.expand_dims(_action, axis=tuple(range(len(_action.shape), len(states.shape))))
-            inputs = np.concatenate((states, actions_reshaped), axis=-1)    
-            return self.model.compute_log_prob_batch(inputs)
+            inputs = np.concatenate((states, actions_reshaped), axis=-1)
+            return self.model.compute_log_prob_batch(inputs, next_states)
         else:
             raise Exception('Not implemented')
 

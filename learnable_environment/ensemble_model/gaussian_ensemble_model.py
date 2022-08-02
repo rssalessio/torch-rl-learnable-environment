@@ -98,7 +98,7 @@ class GaussianEnsembleModel(EnsembleModel):
             holdout_mse_losses = holdout_mse_losses.detach().cpu().numpy()
             holdout_var_losses = holdout_var_losses.detach().cpu().numpy()
             sorted_loss_idx = np.argsort(holdout_mse_losses)
-            elite_size = int(len(sorted_loss_idx) * self.elite_proportion)
+            elite_size = max(1, int(len(sorted_loss_idx) * self.elite_proportion))
             self.elite_models_idxs = sorted_loss_idx[:elite_size].tolist()
         
         return [np.sum(holdout_mse_losses), *save_best_result(epoch, snapshots, holdout_mse_losses)]
@@ -153,12 +153,12 @@ class GaussianEnsembleModel(EnsembleModel):
 
         return training_losses, test_losses
 
-    def compute_log_prob_batch(self, inputs: NDArray) -> torch.Tensor:
+    def compute_log_prob_batch(self, inputs: NDArray, X: NDArray) -> torch.Tensor:
         mean, var = self._predict(inputs)
 
         k = inputs.shape[-1]
         ## [ num_networks, batch_size ]
-        log_prob = -1 / 2 * (k * np.log(2 * np.pi) + torch.log(var).sum(-1) + (torch.pow(torch.from_numpy(inputs) - mean, 2) / var).sum(-1))
+        log_prob = -1 / 2 * (k * np.log(2 * np.pi) + torch.log(var).sum(-1) + (torch.pow(torch.from_numpy(X) - mean, 2) / var).sum(-1))
         
         # ## [ batch_size ]
         # prob = torch.exp(log_prob).sum(0)
