@@ -91,7 +91,9 @@ To add a new type of model that represents a transition function/reward function
 
 Integrate this model in the `LearnableEnvironment` class (in `learnable_environment/learnable_environment.py`) in the `_step` function (add a new `if isinstance(self.model, YourModelName)` with your code).
 
-## Roadmap and ToDo
+## Roadmap
+
+### Features implemented
 
 - Implemented Gaussian Ensemble
   - Implemented KL-divergence computation between two different ensembles
@@ -106,10 +108,6 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
   - MujoCo
     - InvertedPendulum
     - Hopper
-
-### Implemented ensembles
-
-- Gaussian ensemble
 
 ### Todo
 
