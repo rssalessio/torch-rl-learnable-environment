@@ -95,18 +95,17 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
 
 - Implemented Gaussian Ensemble
   - Implemented KL-divergence computation between two different ensembles
+  - Implemented log-likelihood computation
 - Added Training support
 - Added Multi-trajectory support
-
-### Implemented environments
-
-- Classic Control
-  - CartPole
-  - MountainCar
-  - MountainCarContinuous
-- MujoCo
-  - InvertedPendulum
-  - Hopper
+- Implemented environments
+  - Classic Control
+    - CartPole
+    - MountainCar
+    - MountainCarContinuous
+  - MujoCo
+    - InvertedPendulum
+    - Hopper
 
 ### Implemented ensembles
 
@@ -118,3 +117,6 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
 - Update to new Gym API
 - Implement tests
 - Add render
+- Add gym-like make
+- Add DOCS
+- Rebranding (LearnableGym?)
