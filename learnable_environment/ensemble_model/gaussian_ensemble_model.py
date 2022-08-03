@@ -162,16 +162,12 @@ class GaussianEnsembleModel(EnsembleModel):
 
         mean = mean[:,:,:k]
         var = var[:,:,:k]
-        ## [ num_networks, batch_size ]
+
+        ## [ ensemble_size, batch_size, state_dim ] -> [ ensemble_size, batch_size ]
         log_likelihood = -1 / 2 * (k * np.log(2 * np.pi) + torch.log(var).sum(-1) + (torch.pow(torch.from_numpy(X) - mean, 2) / var).sum(-1))
 
-        # ## [ batch_size ]
-        # prob = torch.exp(log_prob).sum(0)
-
-        # ## [ batch_size ]
-        # log_prob = torch.log(prob)
-
-        return log_likelihood.mean(0)
+        # Log sum exp (smooth maximum) -> [ batch_size ]
+        return log_likelihood.exp().sum(0).log()
 
     def compute_kl_divergence_over_batch(self,
             inputs: NDArray,

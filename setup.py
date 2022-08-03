@@ -4,7 +4,7 @@ from os import path
 
 setup(name = 'LearnableEnvironment',
     packages=find_packages(),
-    version = '0.3.0',
+    version = '0.3.1',
     description = 'Learnable environments for model-based RL in PyTorch',
     url = 'hhttps://github.com/rssalessio/torch-rl-learnable-environment',
     author = 'Alessio Russo',
