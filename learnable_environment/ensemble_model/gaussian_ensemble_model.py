@@ -2,6 +2,7 @@ from __future__ import annotations
 from functools import reduce
 from typing import Dict, List, Tuple, Type
 import numpy as np
+from sklearn.covariance import log_likelihood
 import torch
 from sklearn.preprocessing import StandardScaler
 from learnable_environment.ensemble_model.ensemble_model import EnsembleModel
@@ -153,20 +154,24 @@ class GaussianEnsembleModel(EnsembleModel):
 
         return training_losses, test_losses
 
-    def compute_log_prob_batch(self, inputs: NDArray, X: NDArray) -> torch.Tensor:
+    def compute_log_likelihood_batch(self, inputs: NDArray, X: NDArray) -> torch.Tensor:
+        assert X.shape[-1] <= inputs.shape[-1]
         mean, var = self._predict(inputs)
 
-        k = inputs.shape[-1]
+        k = X.shape[-1]        
+
+        mean = mean[:,:,:k]
+        var = var[:,:,:k]
         ## [ num_networks, batch_size ]
-        log_prob = -1 / 2 * (k * np.log(2 * np.pi) + torch.log(var).sum(-1) + (torch.pow(torch.from_numpy(X) - mean, 2) / var).sum(-1))
-        
+        log_likelihood = -1 / 2 * (k * np.log(2 * np.pi) + torch.log(var).sum(-1) + (torch.pow(torch.from_numpy(X) - mean, 2) / var).sum(-1))
+
         # ## [ batch_size ]
         # prob = torch.exp(log_prob).sum(0)
 
         # ## [ batch_size ]
         # log_prob = torch.log(prob)
 
-        return log_prob.mean(0)
+        return log_likelihood.mean(0)
 
     def compute_kl_divergence_over_batch(self,
             inputs: NDArray,

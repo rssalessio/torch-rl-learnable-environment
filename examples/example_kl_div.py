@@ -65,5 +65,5 @@ print(f'KL Divergence between the two models: {mean_kl.item()} +- {1.96 * std_kl
 mean_kl, std_kl = env1.compute_kl_divergence_over_batch(state[-num_evaluation:], action[-num_evaluation:], env2, num_avg_over_ensembles=10)
 print(f'KL Divergence between the two models: {mean_kl.item()} +- {1.96 * std_kl.item() / np.sqrt(10)} (95% confidence)')
 
-log_probs = env1.compute_log_prob_batch(state[-num_evaluation:], action[-num_evaluation:])
-print(f'Log probabilities: {log_probs}')
+log_probs = env1.compute_log_likelihood_batch(state[-num_evaluation:], action[-num_evaluation:], next_state[-num_evaluation:])
+print(f'Max Log likelihood: {log_probs.max()}')

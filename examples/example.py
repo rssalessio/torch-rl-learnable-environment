@@ -16,7 +16,7 @@ env = gym.make(ENV_NAME)
 # Parameters
 num_samples = 3000
 batch_size = 64
-n_models = 5
+n_models = 15
 state_dim = np.prod(env.observation_space.shape)
 action_dim = 1 if isinstance(env.action_space, gym.spaces.Discrete) else np.prod(env.action_space.shape)
 reward_dim = 1
