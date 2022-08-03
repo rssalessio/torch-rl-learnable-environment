@@ -20,7 +20,7 @@ Clone the library and install it using `pip install`. Check the example in `exam
 
 The library needs Python 3.7 to run and the following liraries:
 
-- NumPy, Scikit-learn, Gym, Pydantic, PyTorch, Mujoco-py
+- NumPy, Scikit-learn, Gym, Pydantic, PyTorch, Mujoco-py, stable-baselines3
 - Matplotlib to run the example
 
 ## Example
