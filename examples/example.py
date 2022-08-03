@@ -5,12 +5,12 @@ from typing import List
 
 from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment, MountainCarContinuousLearnableEnvironment
 from learnable_environment.ensemble_model import GaussianEnsembleModel, EnsembleLinearLayerInfo, GaussianEnsembleNetwork
-from learnable_environment.environments.mujoco.hopper import HopperLearnableEnvironment
-from learnable_environment.environments.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
+from learnable_environment.envs.mujoco.hopper import HopperLearnableEnvironment
+from learnable_environment.envs.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
 from utils.experience_buffer import Experience, ExperienceBuffer
 
 # Create environment
-ENV_NAME = 'CartPole-v1'
+ENV_NAME = 'MountainCarContinuous-v0'
 env = gym.make(ENV_NAME)
 
 # Parameters

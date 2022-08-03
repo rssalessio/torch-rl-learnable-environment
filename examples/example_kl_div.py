@@ -6,7 +6,7 @@ from typing import List
 from sklearn import ensemble
 from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment, MountainCarContinuousLearnableEnvironment
 from learnable_environment.ensemble_model import GaussianEnsembleModel, EnsembleLinearLayerInfo, GaussianEnsembleNetwork
-from learnable_environment.environments.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
+from learnable_environment.envs.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
 from utils.experience_buffer import Experience, ExperienceBuffer
 
 # Create environment
