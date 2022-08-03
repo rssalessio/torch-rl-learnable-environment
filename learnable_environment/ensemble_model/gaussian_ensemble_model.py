@@ -167,7 +167,7 @@ class GaussianEnsembleModel(EnsembleModel):
         log_likelihood = -1 / 2 * (k * np.log(2 * np.pi) + torch.log(var).sum(-1) + (torch.pow(torch.from_numpy(X) - mean, 2) / var).sum(-1))
 
         # Log sum exp (smooth maximum) -> [ batch_size ]
-        return log_likelihood.exp().sum(0).log()
+        return (log_likelihood.exp() + 1e-16).sum(0).log()
 
     def compute_kl_divergence_over_batch(self,
             inputs: NDArray,

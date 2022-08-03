@@ -72,7 +72,7 @@ In the following plots we see the performance of an ensemble of 5 networks used 
 
 ## How to add new environments
 
-All environments are in `learnable_environment/environments`. Any new environment needs to implement 3 functions:
+All environments are in `learnable_environment/envs`. Any new environment needs to implement 3 functions:
 
 - `_termination_fn(state, action, next_state)`: termination function. Evaluates if the MDP has reached a terminal state
 - `_reset_fn()`: reset function (returns the initial state)
@@ -83,7 +83,9 @@ In addition to that, make sure to define the `observation_space` and `action_spa
 Optionally, you can decide to set `_reward_fn` to `None` in case it is not possible to compute the reward (e.g., like in the Hopper environment where
 the reward function depends on some hidden variable).
 
-Check the example in `learnable_environment/environments/classic_control/cartpole.py` for more details.
+Make sure to regisgter your new environment in `learnable_environment/envs/registration.py` if you want to use the `make` function.
+
+Check the example in `learnable_environment/envs/classic_control/cartpole.py` for more details.
 
 ## How to add new ensembles or transition function models
 
@@ -100,6 +102,7 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
   - Implemented log-likelihood computation
 - Added Training support
 - Added Multi-trajectory support
+- Added gym-like make function
 - Implemented environments
   - Classic Control
     - CartPole
@@ -115,6 +118,5 @@ Integrate this model in the `LearnableEnvironment` class (in `learnable_environm
 - Update to new Gym API
 - Implement tests
 - Add render
-- Add gym-like make
 - Add DOCS
 - Rebranding (LearnableGym?)

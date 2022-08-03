@@ -3,6 +3,7 @@ import gym
 import matplotlib.pyplot as plt
 from typing import List
 
+from learnable_environment import make
 from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearnableEnvironment, MountainCarContinuousLearnableEnvironment
 from learnable_environment.ensemble_model import GaussianEnsembleModel, EnsembleLinearLayerInfo, GaussianEnsembleNetwork
 from learnable_environment.envs.mujoco.hopper import HopperLearnableEnvironment
@@ -10,8 +11,9 @@ from learnable_environment.envs.mujoco.invertedpendulum import InvertedPendulumL
 from utils.experience_buffer import Experience, ExperienceBuffer
 
 # Create environment
-ENV_NAME = 'MountainCarContinuous-v0'
-env = gym.make(ENV_NAME)
+ENV_NAME = 'MountainCarContinuous'
+ENV_VERSION = 'v0'
+env = gym.make(ENV_NAME + '-' + ENV_VERSION)
 
 # Parameters
 num_samples = 3000
@@ -35,20 +37,7 @@ network = GaussianEnsembleNetwork(n_models, layers)
 # Use ensemble network to create a model
 model = GaussianEnsembleModel(network, lr=1e-2)
 
-# Test prediction with different time horizons
-if 'CartPole' in ENV_NAME:
-    envEnsemble = CartPoleLearnableEnvironment(model=model)
-elif 'MountainCar-v0' == ENV_NAME:
-    envEnsemble = MountainCarLearnableEnvironment(model=model)
-elif 'MountainCarContinuous-v0' == ENV_NAME:
-    envEnsemble = MountainCarContinuousLearnableEnvironment(model=model)
-elif 'InvertedPendulum' in ENV_NAME:
-    envEnsemble = InvertedPendulumLearnableEnvironment(model=model)
-elif 'Hopper' in ENV_NAME:
-    envEnsemble = HopperLearnableEnvironment(model=model)
-else:
-    raise Exception('Model not implemented!')
-
+envEnsemble = make(ENV_NAME, model=model)
 
 state = env.reset()
 
