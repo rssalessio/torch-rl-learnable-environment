@@ -1,4 +1,5 @@
-from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+from gym.vector.vector_env import VectorEnv
 
-class LearnableVecEnv(VecEnv):
-    pass
+class LearnableVecEnv(VectorEnv):
+    def __init__(self, *args, **kwargs):
+        super(VectorEnv, self).__init__(*args, **kwargs)

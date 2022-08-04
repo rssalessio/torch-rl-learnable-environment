@@ -1,3 +1,3 @@
-from .dummy_learnable_vec_env import DummyLearnableVecEnv
+from .learnable_sync_vector_env import LearnableSyncVectorEnv
 from .env_util import make_vec_env
 from .learnable_vec_env import LearnableVecEnv
