@@ -1,11 +1,5 @@
 from .learnable_environment import LearnableEnvironment
-from .envs import (
-    CartPoleLearnableEnvironment,
-    MountainCarLearnableEnvironment,
-    MountainCarContinuousLearnableEnvironment,
-    InvertedPendulumLearnableEnvironment,
-    HopperLearnableEnvironment,
-    make)
+from .envs import *
 
 __version__       = '0.3.3'
 __author__        = 'alessior@kth.se'

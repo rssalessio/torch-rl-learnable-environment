@@ -8,6 +8,7 @@ from learnable_environment import CartPoleLearnableEnvironment, MountainCarLearn
 from learnable_environment.ensemble_model import GaussianEnsembleModel, EnsembleLinearLayerInfo, GaussianEnsembleNetwork
 from learnable_environment.envs.mujoco.hopper import HopperLearnableEnvironment
 from learnable_environment.envs.mujoco.invertedpendulum import InvertedPendulumLearnableEnvironment
+from learnable_environment.envs.vec_env.env_util import make_vec_env
 from utils.experience_buffer import Experience, ExperienceBuffer
 
 from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
@@ -39,7 +40,7 @@ network = GaussianEnsembleNetwork(n_models, layers)
 # Use ensemble network to create a model
 model = GaussianEnsembleModel(network, lr=1e-2)
 
-envEnsemble = make(ENV_NAME, model=model)
+envEnsemble = make_vec_env(ENV_NAME, 5, env_kwargs={'model': model})
 
 state = env.reset()
 
@@ -52,8 +53,7 @@ for i in range(num_samples):
     if done:
         state = env.reset()
 
-# Train ensemble
-envEnsemble.train_on_batch(data = buffer.sample_all()[:4], batch_size = batch_size, holdout_ratio = 0.2, use_decay=False)
+envEnsemble.learnable_env.train_on_batch(data = buffer.sample_all()[:4], batch_size = batch_size, holdout_ratio = 0.2, use_decay=False)
 
 # Test ensemble
 prediction_error_stats = {x: [] for x in range(1, max_horizon + 1)}
